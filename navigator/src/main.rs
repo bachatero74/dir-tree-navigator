@@ -56,8 +56,6 @@ impl Screen {
     }
 }
 
-// test
-
 fn main() {
     let screen = Screen::initialize();
     getch();
