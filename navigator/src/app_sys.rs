@@ -7,5 +7,4 @@ pub enum AppError {
 
     #[error("Błąd IO: {0}")]
     IoError(#[from] std::io::Error),
-
 }
