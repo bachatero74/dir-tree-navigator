@@ -1,4 +1,12 @@
 mod app_sys;
+mod tree;
+mod views;
+
+use std::{cell::RefCell, rc::Rc};
+
+use crate::tree::*;
+use crate::views::*;
+use app_sys::AppError;
 use ncurses::*;
 
 struct Screen {
@@ -9,7 +17,7 @@ struct Screen {
 }
 
 impl Screen {
-    fn initialize() -> Screen {
+    fn create() -> Screen {
         initscr();
         cbreak();
         noecho();
@@ -56,15 +64,32 @@ impl Screen {
     }
 }
 
+fn run(screen: &Screen) -> Result<(), AppError> {
+    let tree: Rc<RefCell<Tree>> = Rc::new(RefCell::new(Tree {}));
+
+    let tree_view: Rc<RefCell<TreeView>> = Rc::new(RefCell::new(TreeView { tree: tree.clone() }));
+    let list_view: Rc<RefCell<ListView>> = Rc::new(RefCell::new(ListView { tree: tree.clone() }));
+
+    let rightDispl=Display{content:tree_view.clone()};
+    let leftDispl=Display{content:list_view.clone()};
+
+    Ok(())
+}
+
 fn main() {
-    let screen = Screen::initialize();
-    getch();
-    
+    let screen = Screen::create();
+
     mvwprintw(screen.tree_win, 0, 0, "123456789");
     mvwprintw(screen.list_win, 0, 0, "123456789");
     wrefresh(screen.tree_win);
-	wrefresh(screen.list_win);
+    wrefresh(screen.list_win);
 
     getch();
+
+    let result = run(&screen);
+
     screen.close();
+    if let Err(err) = result {
+        eprintln!("{}", err);
+    }
 }
