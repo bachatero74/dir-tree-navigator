@@ -6,7 +6,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::tree::*;
 use crate::views::*;
-use app_sys::AppError;
+use app_sys::*;
 use ncurses::*;
 
 struct Screen {
@@ -14,6 +14,9 @@ struct Screen {
     right_pane: WINDOW,
     tree_win: WINDOW,
     list_win: WINDOW,
+
+    tw_size: Size,
+    lw_size: Size,
 }
 
 impl Screen {
@@ -52,6 +55,9 @@ impl Screen {
             right_pane,
             tree_win,
             list_win,
+
+            tw_size: Size::new(l_width - 2, scr_height - 2),
+            lw_size: Size::new(r_width - 2, scr_height - 2),
         }
     }
 
@@ -67,11 +73,13 @@ impl Screen {
 fn run(screen: &Screen) -> Result<(), AppError> {
     let tree: Rc<RefCell<Tree>> = Rc::new(RefCell::new(Tree {}));
 
-    let tree_view: Rc<RefCell<TreeView>> = Rc::new(RefCell::new(TreeView { tree: tree.clone() }));
-    let list_view: Rc<RefCell<ListView>> = Rc::new(RefCell::new(ListView { tree: tree.clone() }));
+    let tree_view: Rc<RefCell<TreeView>> = Rc::new(RefCell::new(TreeView::new(tree.clone()))); // po co Rc, nie wystarczy Box?
+    let list_view: Rc<RefCell<ListView>> = Rc::new(RefCell::new(ListView::new(tree.clone())));
 
-    let rightDispl=Display{content:tree_view.clone()};
-    let leftDispl=Display{content:list_view.clone()};
+    let leftDispl = Display::new(tree_view.clone(), &screen.tree_win, &screen.tw_size);
+    let rightDispl = Display::new(list_view.clone(), &screen.list_win, &screen.lw_size);
+
+    //let x=screen.tree_win;
 
     Ok(())
 }
@@ -79,8 +87,18 @@ fn run(screen: &Screen) -> Result<(), AppError> {
 fn main() {
     let screen = Screen::create();
 
-    mvwprintw(screen.tree_win, 0, 0, "123456789");
-    mvwprintw(screen.list_win, 0, 0, "123456789");
+    mvwprintw(
+        screen.tree_win,
+        0,
+        0,
+        &format!("{} x {}", screen.tw_size.width, screen.tw_size.height),
+    );
+    mvwprintw(
+        screen.list_win,
+        0,
+        0,
+        &format!("{} x {}", screen.lw_size.width, screen.lw_size.height),
+    );
     wrefresh(screen.tree_win);
     wrefresh(screen.list_win);
 

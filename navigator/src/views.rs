@@ -1,24 +1,47 @@
+use ncurses::*;
+
+use crate::app_sys::*;
 use crate::tree::Tree;
 use std::{cell::RefCell, rc::Rc};
 
 pub struct TreeView {
-    pub tree: Rc<RefCell<Tree>>,
+    tree: Rc<RefCell<Tree>>,
+}
+
+impl TreeView {
+    pub fn new(tree: Rc<RefCell<Tree>>) -> TreeView {
+        TreeView { tree }
+    }
 }
 
 pub struct ListView {
-    pub tree: Rc<RefCell<Tree>>,
+    tree: Rc<RefCell<Tree>>,
 }
 
-pub trait DisplContent {
-
+impl ListView {
+    pub fn new(tree: Rc<RefCell<Tree>>) -> ListView {
+        ListView { tree }
+    }
 }
 
-pub struct Display{
-    pub content:Rc<RefCell<dyn DisplContent>>,
+pub trait DisplContent {}
+
+pub struct Display {
+    content: Rc<RefCell<dyn DisplContent>>, // nie wystarczy Box?
+    window: WINDOW,
+    size: Size,
 }
 
-impl DisplContent for ListView{
+impl Display {
+    pub fn new(content: Rc<RefCell<dyn DisplContent>>, window: &WINDOW, size: &Size) -> Display {
+        Display {
+            content,
+            window: *window,
+            size: *size,
+        }
+    }
 }
 
-impl DisplContent for TreeView{
-}
+impl DisplContent for ListView {}
+
+impl DisplContent for TreeView {}
