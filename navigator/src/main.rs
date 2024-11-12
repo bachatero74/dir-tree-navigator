@@ -73,11 +73,11 @@ impl Screen {
 fn run(screen: &Screen) -> Result<(), AppError> {
     let tree: Rc<RefCell<Tree>> = Rc::new(RefCell::new(Tree {}));
 
-    let tree_view: Rc<RefCell<TreeView>> = Rc::new(RefCell::new(TreeView::new(tree.clone()))); // po co Rc, nie wystarczy Box?
-    let list_view: Rc<RefCell<ListView>> = Rc::new(RefCell::new(ListView::new(tree.clone())));
+    let tree_view: Box<TreeView> = Box::new(TreeView::new(tree.clone()));
+    let list_view: Box<ListView> = Box::new(ListView::new(tree.clone()));
 
-    let left_displ = Display::new(tree_view.clone(), &screen.tree_win, &screen.tw_size);
-    let right_displ = Display::new(list_view.clone(), &screen.list_win, &screen.lw_size);
+    let left_displ = Display::new(tree_view, &screen.tree_win, &screen.tw_size);
+    let right_displ = Display::new(list_view, &screen.list_win, &screen.lw_size);
 
     //let x=screen.tree_win;
 

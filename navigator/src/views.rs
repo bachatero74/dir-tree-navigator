@@ -27,13 +27,13 @@ impl ListView {
 pub trait DisplContent {}
 
 pub struct Display {
-    content: Rc<RefCell<dyn DisplContent>>, // nie wystarczy Box?
+    content: Box<dyn DisplContent>,
     window: WINDOW,
     size: Size,
 }
 
 impl Display {
-    pub fn new(content: Rc<RefCell<dyn DisplContent>>, window: &WINDOW, size: &Size) -> Display {
+    pub fn new(content: Box<dyn DisplContent>, window: &WINDOW, size: &Size) -> Display {
         Display {
             content,
             window: *window,
