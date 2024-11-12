@@ -2,6 +2,7 @@ mod app_sys;
 mod tree;
 mod views;
 
+use std::process::ExitCode;
 use std::{cell::RefCell, rc::Rc};
 
 use crate::tree::*;
@@ -95,7 +96,7 @@ fn run(screen: &Screen) -> Result<(), AppError> {
     Ok(())
 }
 
-fn main() {
+fn main()->ExitCode {
     let screen = Screen::create();
 
     let result = run(&screen);
@@ -103,5 +104,7 @@ fn main() {
     screen.close();
     if let Err(err) = result {
         eprintln!("{}", err);
+        return ExitCode::FAILURE;
     }
+    ExitCode::SUCCESS
 }
