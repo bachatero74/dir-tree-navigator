@@ -90,7 +90,6 @@ fn run(screen: &Screen) -> Result<(), AppError> {
         if ch == KEY_F(10) || ch == 27 {
             break;
         }
-
     }
 
     Ok(())
