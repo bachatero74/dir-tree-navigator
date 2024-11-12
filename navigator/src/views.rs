@@ -12,9 +12,13 @@ struct DisplInfo {
     curs_x2: i32,
 }
 
+pub struct ViewLine {
+    pub content: String,
+}
+
 pub trait DisplContent {
-    fn prepare(&self, info: &mut DisplInfo);
-    fn get_line(&self, y: i32) -> &str;
+    fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError>;
+    fn get_line(&self, y: usize) -> Result<&str, AppError>;
 }
 
 pub struct Display {
@@ -36,43 +40,58 @@ impl Display {
         }
     }
 
-    pub fn display(&self) {
+    pub fn display(&mut self) -> Result<(), AppError> {
         let mut info: DisplInfo = Default::default();
-        self.content.prepare(&mut info);
+        self.content.prepare(&mut info)?;
 
-        mvwprintw(self.window, 3, 3, self.content.get_line(0));
+        let l_cnt = std::cmp::min(info.lines_count, self.size.height);
+
+        for y in 0..l_cnt {
+            mvwprintw(self.window, y, 0, self.content.get_line(y as usize)?);
+        }
 
         wrefresh(self.window);
+        Ok(())
     }
 }
 
-// ------ TreeView
+// ------ TreeView -------------------------------------
 
 pub struct TreeView {
     tree: Rc<RefCell<Tree>>,
-    test_line: String,
+    lines: Vec<ViewLine>,
 }
 
 impl TreeView {
     pub fn new(tree: Rc<RefCell<Tree>>) -> TreeView {
         TreeView {
             tree,
-            test_line: "TreeView".to_owned(),
+            lines: Vec::new(),
         }
     }
 }
 
 impl DisplContent for TreeView {
-    fn prepare(&self, info: &mut DisplInfo) {
-        //todo!()
+    fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError> {
+        self.lines.clear();
+        for i in 0..1000 {
+            self.lines.push(ViewLine {
+                content: i.to_string(),
+            });
+        }
+        info.lines_count = 1000;
+        Ok(())
     }
 
-    fn get_line(&self, y: i32) -> &str {
-        &self.test_line
+    fn get_line(&self, y: usize) -> Result<&str, AppError> {
+        match self.lines.get(y) {
+            Some(line) => Ok(&line.content),
+            None => Err(AppError::StrError("TreeView index out of range".to_owned())),
+        }
     }
 }
 
-// ------ ListView
+// ------ ListView -------------------------------------
 
 pub struct ListView {
     tree: Rc<RefCell<Tree>>,
@@ -89,11 +108,12 @@ impl ListView {
 }
 
 impl DisplContent for ListView {
-    fn prepare(&self, info: &mut DisplInfo) {
+    fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError> {
         //todo!()
+        Ok(())
     }
 
-    fn get_line(&self, y: i32) -> &str {
-        &self.test_line
+    fn get_line(&self, y: usize) -> Result<&str, AppError> {
+        Ok(&self.test_line)
     }
 }

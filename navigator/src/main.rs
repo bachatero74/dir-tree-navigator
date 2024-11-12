@@ -78,12 +78,12 @@ fn run(screen: &Screen) -> Result<(), AppError> {
     let tree_view: Box<TreeView> = Box::new(TreeView::new(tree.clone()));
     let list_view: Box<ListView> = Box::new(ListView::new(tree.clone()));
 
-    let left_displ = Display::new(tree_view, &screen.tree_win, &screen.tw_size);
-    let right_displ = Display::new(list_view, &screen.list_win, &screen.lw_size);
+    let mut left_displ = Display::new(tree_view, &screen.tree_win, &screen.tw_size);
+    let mut right_displ = Display::new(list_view, &screen.list_win, &screen.lw_size);
 
     loop {
-        left_displ.display();
-        right_displ.display();
+        left_displ.display()?;
+        right_displ.display()?;
 
         let ch = getch();
 
