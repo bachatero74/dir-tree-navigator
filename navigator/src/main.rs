@@ -24,6 +24,8 @@ impl Screen {
         initscr();
         cbreak();
         noecho();
+        keypad(stdscr(), true);
+        
         refresh();
 
         let mut scr_height: i32 = 0;
@@ -49,6 +51,9 @@ impl Screen {
 
         let list_win: WINDOW = newwin(scr_height - 2, r_width - 2, 1, l_width + 1);
         wrefresh(list_win);
+
+
+
 
         Screen {
             left_pane,
@@ -79,7 +84,24 @@ fn run(screen: &Screen) -> Result<(), AppError> {
     let left_displ = Display::new(tree_view, &screen.tree_win, &screen.tw_size);
     let right_displ = Display::new(list_view, &screen.list_win, &screen.lw_size);
 
-    //let x=screen.tree_win;
+    loop {
+        let ch = getch();
+        if ch == KEY_F(10) {
+            break;
+        }
+        mvwprintw(
+            screen.list_win,
+            1,
+            0,
+            &format!("{}", ch),
+        );
+        // if ch == 27 {
+        //     break;
+        // }
+        
+        wrefresh(screen.tree_win);
+        wrefresh(screen.list_win);
+    }
 
     Ok(())
 }
