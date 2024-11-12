@@ -1,13 +1,19 @@
-mod app_sys;
+mod common;
 mod tree;
-mod views;
+mod graph{
+    pub mod display;
+    pub mod tree_view;
+    pub mod list_view;
+}
 
 use std::process::ExitCode;
 use std::{cell::RefCell, rc::Rc};
 
-use crate::tree::*;
-use crate::views::*;
-use app_sys::*;
+use tree::*;
+use graph::display::*;
+use graph::tree_view::*;
+use graph::list_view::*;
+use common::*;
 use ncurses::*;
 
 struct Screen {
