@@ -18,7 +18,7 @@ pub struct ViewLine {
 
 pub trait DisplContent {
     fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError>;
-    fn get_line(&self, y: usize) -> Result<&str, AppError>;
+    fn get_line(&self, y: usize) -> Result<&ViewLine, AppError>;
 }
 
 pub struct Display {
@@ -47,7 +47,8 @@ impl Display {
         let l_cnt = std::cmp::min(info.lines_count, self.size.height);
 
         for y in 0..l_cnt {
-            mvwprintw(self.window, y, 0, self.content.get_line(y as usize)?);
+            let v_line = self.content.get_line(y as usize)?;
+            mvwprintw(self.window, y, 0, &v_line.content);
         }
 
         wrefresh(self.window);
@@ -74,18 +75,18 @@ impl TreeView {
 impl DisplContent for TreeView {
     fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError> {
         self.lines.clear();
-        for i in 0..1000 {
+        for i in 0..15 {
             self.lines.push(ViewLine {
                 content: i.to_string(),
             });
         }
-        info.lines_count = 1000;
+        info.lines_count = 15;
         Ok(())
     }
 
-    fn get_line(&self, y: usize) -> Result<&str, AppError> {
+    fn get_line(&self, y: usize) -> Result<&ViewLine, AppError> {
         match self.lines.get(y) {
-            Some(line) => Ok(&line.content),
+            Some(line) => Ok(line),
             None => Err(AppError::StrError("TreeView index out of range".to_owned())),
         }
     }
@@ -113,7 +114,7 @@ impl DisplContent for ListView {
         Ok(())
     }
 
-    fn get_line(&self, y: usize) -> Result<&str, AppError> {
-        Ok(&self.test_line)
+    fn get_line(&self, y: usize) -> Result<&ViewLine, AppError> {
+        todo!()
     }
 }
