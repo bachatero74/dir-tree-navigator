@@ -4,27 +4,14 @@ use crate::app_sys::*;
 use crate::tree::Tree;
 use std::{cell::RefCell, rc::Rc};
 
-pub struct TreeView {
-    tree: Rc<RefCell<Tree>>,
+#[derive(Default)]
+struct DisplInfo {
+    lines_count: i32,
 }
 
-impl TreeView {
-    pub fn new(tree: Rc<RefCell<Tree>>) -> TreeView {
-        TreeView { tree }
-    }
+pub trait DisplContent {
+    fn prepare(&self, info: &mut DisplInfo);
 }
-
-pub struct ListView {
-    tree: Rc<RefCell<Tree>>,
-}
-
-impl ListView {
-    pub fn new(tree: Rc<RefCell<Tree>>) -> ListView {
-        ListView { tree }
-    }
-}
-
-pub trait DisplContent {}
 
 pub struct Display {
     content: Box<dyn DisplContent>,
@@ -40,8 +27,54 @@ impl Display {
             size: *size,
         }
     }
+
+    pub fn display(&self) {
+        let mut info: DisplInfo = Default::default();
+        self.content.prepare(&mut info);
+
+        mvwprintw(
+            self.window,
+            3,
+            3,
+            &format!("{} x {}", self.size.width, self.size.height),
+        );
+
+        wrefresh(self.window);
+    }
 }
 
-impl DisplContent for ListView {}
+// ------ TreeView
 
-impl DisplContent for TreeView {}
+pub struct TreeView {
+    tree: Rc<RefCell<Tree>>,
+}
+
+impl TreeView {
+    pub fn new(tree: Rc<RefCell<Tree>>) -> TreeView {
+        TreeView { tree }
+    }
+}
+
+impl DisplContent for TreeView {
+    fn prepare(&self, info: &mut DisplInfo) {
+        //todo!()
+    }
+}
+
+// ------ ListView
+
+pub struct ListView {
+    tree: Rc<RefCell<Tree>>,
+}
+
+impl ListView {
+    pub fn new(tree: Rc<RefCell<Tree>>) -> ListView {
+        ListView { tree }
+    }
+}
+
+impl DisplContent for ListView {
+    fn prepare(&self, info: &mut DisplInfo) {
+        //todo!()
+    }
+}
