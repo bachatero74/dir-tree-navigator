@@ -21,6 +21,8 @@ pub struct Display {
     content: Box<dyn DisplContent>,
     window: WINDOW,
     size: Size,
+    offset_x: i32,
+    offset_y: i32,
 }
 
 impl Display {
@@ -29,6 +31,8 @@ impl Display {
             content,
             window: *window,
             size: *size,
+            offset_x: 0,
+            offset_y: 0,
         }
     }
 
