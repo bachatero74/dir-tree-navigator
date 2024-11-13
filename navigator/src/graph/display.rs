@@ -1,5 +1,5 @@
-use ncurses::*;
 use crate::common::*;
+use ncurses::*;
 
 #[derive(Default)]
 pub struct DisplInfo {
@@ -11,6 +11,14 @@ pub struct DisplInfo {
 
 pub struct ViewLine {
     pub content: String,
+    pub x1: i32,
+    pub x2: i32,
+}
+
+impl ViewLine {
+    pub fn new(content: String, x1: i32, x2: i32) -> ViewLine {
+        ViewLine { content, x1, x2 }
+    }
 }
 
 pub trait DisplContent {
@@ -45,7 +53,7 @@ impl Display {
 
         for y in 0..l_cnt {
             let v_line = self.content.get_line(y as usize)?;
-            mvwprintw(self.window, y, 0, &v_line.content);
+            mvwprintw(self.window, y as i32, 0, &v_line.content);
         }
 
         wrefresh(self.window);

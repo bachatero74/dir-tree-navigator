@@ -1,3 +1,5 @@
+use crate::graph::display::*; // Tymczasowe
+
 pub struct Node {}
 
 pub struct FileNode {
@@ -13,4 +15,19 @@ pub enum TreeNode {
     Dir(DirNode),
 }
 
-pub struct Tree {}
+pub struct Tree {
+    pub tmp_lines: Vec<ViewLine>,
+}
+
+impl Tree {
+    pub fn new() -> Tree {
+        Tree {
+            tmp_lines: vec![
+                ViewLine::new("12345abcde".to_owned(), 5, 9),
+                ViewLine::new("12345abcde".to_owned(), 5, 9),
+                ViewLine::new("12345abcde".to_owned(), 5, 9),
+                ViewLine::new("12345abcde".to_owned(), 5, 9),
+            ]
+        }
+    }
+}

@@ -1,20 +1,20 @@
 mod common;
 mod tree;
-mod graph{
+mod graph {
     pub mod display;
-    pub mod tree_view;
     pub mod list_view;
+    pub mod tree_view;
 }
 
 use std::process::ExitCode;
 use std::{cell::RefCell, rc::Rc};
 
-use tree::*;
-use graph::display::*;
-use graph::tree_view::*;
-use graph::list_view::*;
 use common::*;
+use graph::display::*;
+use graph::list_view::*;
+use graph::tree_view::*;
 use ncurses::*;
+use tree::*;
 
 struct Screen {
     left_pane: WINDOW,
@@ -80,7 +80,7 @@ impl Screen {
 }
 
 fn run(screen: &Screen) -> Result<(), AppError> {
-    let tree: Rc<RefCell<Tree>> = Rc::new(RefCell::new(Tree {}));
+    let tree: Rc<RefCell<Tree>> = Rc::new(RefCell::new(Tree::new()));
 
     let tree_view: Box<TreeView> = Box::new(TreeView::new(tree.clone()));
     let list_view: Box<ListView> = Box::new(ListView::new(tree.clone()));
@@ -102,7 +102,7 @@ fn run(screen: &Screen) -> Result<(), AppError> {
     Ok(())
 }
 
-fn main()->ExitCode {
+fn main() -> ExitCode {
     let screen = Screen::create();
 
     let result = run(&screen);

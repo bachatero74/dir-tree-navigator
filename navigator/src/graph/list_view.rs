@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::common::*;
 use super::display::*;
+use crate::common::*;
 use crate::tree::*;
 
 pub struct ListView {

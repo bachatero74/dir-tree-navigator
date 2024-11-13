@@ -1,7 +1,8 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::common::*;
 use super::display::*;
+use crate::common::*;
+use crate::tree;
 use crate::tree::*;
 
 pub struct TreeView {
@@ -21,12 +22,12 @@ impl TreeView {
 impl DisplContent for TreeView {
     fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError> {
         self.lines.clear();
-        for i in 0..15 {
-            self.lines.push(ViewLine {
-                content: i.to_string(),
-            });
+        let tree=self.tree.borrow();
+        info.lines_count = tree.tmp_lines.len() as i32;
+        for i in 0..info.lines_count {
+            let src:&ViewLine = &tree.tmp_lines[i as usize];
+            self.lines.push(ViewLine::new(src.content.clone(),src.x1,src.x2));
         }
-        info.lines_count = 15;
         Ok(())
     }
 
