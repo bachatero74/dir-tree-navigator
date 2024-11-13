@@ -90,7 +90,7 @@ fn run(screen: &Screen) -> Result<(), AppError> {
     let mut right_displ = Display::new(list_view, &screen.list_win, &screen.lw_size);
 
     loop {
-        left_displ.display()?;
+        left_displ.display()?; // TODO: jeśli Tree::modified
         right_displ.display()?;
 
         let ch: i32 = getch();

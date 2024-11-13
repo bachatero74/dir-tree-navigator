@@ -60,7 +60,7 @@ impl Display {
 
         for y in 0..self.size.height {
             let ln = y + self.offset_y;
-            if ln >= info.lines_count {
+            if ln >= info.lines_count { // TODO: nieoptymalne
                 break;
             }
             let view_line = self.content.get_line(ln as usize)?;
