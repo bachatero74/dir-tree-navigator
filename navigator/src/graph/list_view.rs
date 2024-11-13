@@ -27,4 +27,8 @@ impl DisplContent for ListView {
     fn get_line(&self, y: usize) -> Result<&ViewLine, AppError> {
         todo!()
     }
+
+    fn process_key(&self, key: i32) -> Result<(), AppError> {
+        todo!()
+    }
 }

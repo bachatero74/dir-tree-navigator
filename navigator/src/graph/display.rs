@@ -24,6 +24,7 @@ impl ViewLine {
 pub trait DisplContent {
     fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError>;
     fn get_line(&self, y: usize) -> Result<&ViewLine, AppError>;
+    fn process_key(&self, key: i32) -> Result<(), AppError>;
 }
 
 pub struct Display {
@@ -49,14 +50,30 @@ impl Display {
         let mut info: DisplInfo = Default::default();
         self.content.prepare(&mut info)?;
 
-        let l_cnt = std::cmp::min(info.lines_count, self.size.height);
-
-        for y in 0..l_cnt {
-            let v_line = self.content.get_line(y as usize)?;
-            mvwprintw(self.window, y as i32, 0, &v_line.content);
+        if info.curs_line - self.offset_y > self.size.height-1 {
+            self.offset_y = info.curs_line - self.size.height + 1;
         }
+
+        if info.curs_line - self.offset_y < 0  {
+            self.offset_y = info.curs_line;
+        }
+
+        for y in 0..self.size.height {
+            let ln = y + self.offset_y;
+            if ln >= info.lines_count {
+                break;
+            }
+            let view_line = self.content.get_line(ln as usize)?;
+            mvwprintw(self.window, y as i32, 0, &view_line.content);
+        }
+
+        mvwprintw(self.window, info.curs_line as i32 - self.offset_y, 0, ">");
 
         wrefresh(self.window);
         Ok(())
+    }
+
+    pub fn process_key(&self, key: i32) -> Result<(), AppError> {
+        self.content.process_key(key)
     }
 }

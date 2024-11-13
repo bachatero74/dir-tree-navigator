@@ -31,6 +31,7 @@ impl Screen {
         initscr();
         cbreak();
         noecho();
+        curs_set(CURSOR_VISIBILITY::CURSOR_INVISIBLE);
         keypad(stdscr(), true);
 
         refresh();
@@ -92,11 +93,13 @@ fn run(screen: &Screen) -> Result<(), AppError> {
         left_displ.display()?;
         right_displ.display()?;
 
-        let ch = getch();
+        let ch: i32 = getch();
 
         if ch == KEY_F(10) || ch == 27 {
             break;
         }
+
+        left_displ.process_key(ch)?;
     }
 
     Ok(())
