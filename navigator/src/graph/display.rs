@@ -77,3 +77,23 @@ impl Display {
         self.content.process_key(key)
     }
 }
+
+fn test_substr() {
+	let w=6;
+	let s="123abcde";
+	let x1=3;
+	let x2=7;
+	
+    
+    let offs = fit(x1, x2, w);
+    println!("offs={}",offs);
+    println!("substr={}", substr(s, offs, w));
+}
+
+fn fit(x1: i32, x2: i32, width: i32)->i32 {
+	(x2-width).clamp(0,x1)
+}
+
+fn substr(s:&str, offs: i32, width: i32)->String {
+	s.chars().skip(offs as usize).take(width as usize).collect()
+}
