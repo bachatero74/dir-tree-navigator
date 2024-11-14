@@ -99,5 +99,3 @@ fn mvwprintw_substr(w: WINDOW, y: i32, x: i32, s: &str, offs: i32, len: i32) {
         waddch(w, ch as u32);
     }
 }
-
-

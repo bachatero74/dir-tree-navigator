@@ -29,6 +29,6 @@ impl DisplContent for ListView {
     }
 
     fn process_key(&self, key: i32) -> Result<(), AppError> {
-        todo!()
+        Ok(())
     }
 }
