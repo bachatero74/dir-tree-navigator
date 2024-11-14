@@ -26,11 +26,11 @@ impl Tree {
         Tree {
             tmp_cursor: 0,
             tmp_lines: vec![
-                ViewLine::new("12345abcde".to_owned(), 5, 9),
-                ViewLine::new("12345a1cde".to_owned(), 5, 9),
-                ViewLine::new("12345a2cde".to_owned(), 5, 9),
-                ViewLine::new("12345a3cde".to_owned(), 5, 9),
-                ViewLine::new("12345abcde".to_owned(), 5, 9),
+                ViewLine::new("-+---abcde".to_owned(), 5, 9),
+                ViewLine::new(" +---a1cde".to_owned(), 5, 9),
+                ViewLine::new(" +---a2cde".to_owned(), 5, 9),
+                ViewLine::new(" |  +----development12".to_owned(), 9, 20),
+                ViewLine::new(" +---abcde".to_owned(), 5, 9),
                 ViewLine::new("12345abcde".to_owned(), 5, 9),
                 ViewLine::new("12345abcde".to_owned(), 5, 9),
                 ViewLine::new("12345abcde".to_owned(), 5, 9),

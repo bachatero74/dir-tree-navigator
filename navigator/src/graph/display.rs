@@ -31,7 +31,7 @@ pub struct Display {
     content: Box<dyn DisplContent>,
     window: WINDOW,
     size: Size,
-    offset_x: i32,
+    //offset_x: i32,
     offset_y: i32,
 }
 
@@ -41,7 +41,7 @@ impl Display {
             content,
             window: *window,
             size: *size,
-            offset_x: 0,
+            //offset_x: 0,
             offset_y: 0,
         }
     }
@@ -50,21 +50,32 @@ impl Display {
         let mut info: DisplInfo = Default::default();
         self.content.prepare(&mut info)?;
 
-        if info.curs_line - self.offset_y > self.size.height-1 {
+        if info.curs_line - self.offset_y > self.size.height - 1 {
             self.offset_y = info.curs_line - self.size.height + 1;
         }
 
-        if info.curs_line - self.offset_y < 0  {
+        if info.curs_line - self.offset_y < 0 {
             self.offset_y = info.curs_line;
         }
 
+        let offset_x = fit_str(info.curs_x1, info.curs_x2, self.size.width);
+
+        werase(self.window);
         for y in 0..self.size.height {
             let ln = y + self.offset_y;
-            if ln >= info.lines_count { // TODO: nieoptymalne
+            if ln >= info.lines_count {
+                // TODO: nieoptymalne
                 break;
             }
             let view_line = self.content.get_line(ln as usize)?;
-            mvwprintw(self.window, y as i32, 0, &view_line.content);
+            mvwprintw_substr(
+                self.window,
+                y as i32,
+                0,
+                &view_line.content,
+                offset_x,
+                self.size.width,
+            );
         }
 
         mvwprintw(self.window, info.curs_line as i32 - self.offset_y, 0, ">");
@@ -78,22 +89,15 @@ impl Display {
     }
 }
 
-fn test_substr() {
-	let w=6;
-	let s="123abcde";
-	let x1=3;
-	let x2=7;
-	
-    
-    let offs = fit(x1, x2, w);
-    println!("offs={}",offs);
-    println!("substr={}", substr(s, offs, w));
+fn fit_str(x1: i32, x2: i32, width: i32) -> i32 {
+    (x2 - width).clamp(0, x1)
 }
 
-fn fit(x1: i32, x2: i32, width: i32)->i32 {
-	(x2-width).clamp(0,x1)
+fn mvwprintw_substr(w: WINDOW, y: i32, x: i32, s: &str, offs: i32, len: i32) {
+    wmove(w, y, x);
+    for ch in s.chars().skip(offs as usize).take(len as usize) {
+        waddch(w, ch as u32);
+    }
 }
 
-fn substr(s:&str, offs: i32, width: i32)->String {
-	s.chars().skip(offs as usize).take(width as usize).collect()
-}
+

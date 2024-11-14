@@ -30,9 +30,9 @@ impl DisplContent for TreeView {
         info.curs_line = tree.tmp_cursor;
         match tree.tmp_lines.get(tree.tmp_cursor as usize) {
             Some(line) => {
-                info.curs_x1=line.x1;
-                info.curs_x2=line.x2;
-            },
+                info.curs_x1 = line.x1;
+                info.curs_x2 = line.x2;
+            }
             None => return Err(AppError::StrError("Index out of range".to_owned())),
         }
         for i in 0..info.lines_count {
