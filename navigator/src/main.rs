@@ -35,7 +35,9 @@ fn run(screen: &Screen) -> Result<(), AppError> {
 
     let mut focused_displ = left_displ.clone();
     loop {
-        left_displ.borrow_mut().display()?; // TODO: jeśli Tree::modified
+        // TODO: wprowadzić inwalidację widoku na potrzeby DisplContent.prepare
+        // jeśli widok nie zostanie inwalidowany, nie będzie potrzeby regenerowania jego zawartości (np. drzewa) w funkcji prepare()
+        left_displ.borrow_mut().display()?; 
         right_displ.borrow_mut().display()?;
 
         let ch: i32 = getch();
