@@ -68,14 +68,7 @@ impl Display {
                 break;
             }
             let view_line = self.content.get_line(ln as usize)?;
-            mvwprintw_substr(
-                self.window,
-                y as i32,
-                0,
-                &view_line.content,
-                offset_x,
-                self.size.width,
-            );
+            self.print_line(y as i32, 0, view_line, offset_x);
         }
 
         mvwprintw(self.window, info.curs_line as i32 - self.offset_y, 0, ">");
@@ -87,15 +80,29 @@ impl Display {
     pub fn process_key(&self, key: i32) -> Result<(), AppError> {
         self.content.process_key(key)
     }
+
+    fn print_line(&self, y: i32, x: i32, vline: &ViewLine, offs: i32) {
+        wattr_off(self.window,A_REVERSE);
+        wmove(self.window, y, x);
+        for (i, ch) in vline.content.chars().enumerate() {
+            if i < offs as usize {
+                continue;
+            }
+            if i-(offs as usize)>= self.size.width as usize {
+                break;
+            }
+            if i>=vline.x2 as usize{
+                wattr_off(self.window,A_REVERSE);
+            }
+            else if i>=vline.x1 as usize {
+                wattr_on(self.window,A_REVERSE);
+            }
+            waddch(self.window, ch as u32);
+        }
+        wattr_off(self.window,A_REVERSE);
+    }
 }
 
 fn fit_str(x1: i32, x2: i32, width: i32) -> i32 {
     (x2 - width).clamp(0, x1)
-}
-
-fn mvwprintw_substr(w: WINDOW, y: i32, x: i32, s: &str, offs: i32, len: i32) {
-    wmove(w, y, x);
-    for ch in s.chars().skip(offs as usize).take(len as usize) {
-        waddch(w, ch as u32);
-    }
 }

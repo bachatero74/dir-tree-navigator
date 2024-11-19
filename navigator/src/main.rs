@@ -55,7 +55,7 @@ fn main() -> ExitCode {
     let screen = Screen::create();
     let result = run(&screen);
     screen.close();
-    
+
     if let Err(err) = result {
         eprintln!("{}", err);
         return ExitCode::FAILURE;
