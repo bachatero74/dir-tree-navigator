@@ -1,5 +1,8 @@
+use std::rc::Weak;
+
 use crate::common::AppError;
 use crate::graph::display::*; // Tymczasowe
+use crate::graph::tree_view::TreeView;
 
 pub struct Node {}
 
@@ -19,11 +22,13 @@ pub enum TreeNode {
 pub struct Tree {
     pub tmp_lines: Vec<ViewLine>,
     pub tmp_cursor: i32,
+    pub tree_view:Weak<TreeView>,
 }
 
 impl Tree {
     pub fn new() -> Tree {
         Tree {
+            tree_view: Weak::new(),
             tmp_cursor: 0,
             tmp_lines: vec![
                 ViewLine::new("-+---mnt".to_owned(), 5, 8),
