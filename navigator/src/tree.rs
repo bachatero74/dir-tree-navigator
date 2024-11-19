@@ -1,7 +1,9 @@
+use std::cell::RefCell;
 use std::rc::Weak;
 
 use crate::common::AppError;
 use crate::graph::display::*; // Tymczasowe
+use crate::graph::list_view::ListView;
 use crate::graph::tree_view::TreeView;
 
 pub struct Node {}
@@ -20,6 +22,8 @@ pub enum TreeNode {
 }
 
 pub struct Tree {
+    pub tree_view: Weak<RefCell<TreeView>>,
+    pub list_view: Weak<RefCell<ListView>>,
     pub tmp_lines: Vec<ViewLine>,
     pub tmp_cursor: i32,
 }
@@ -27,6 +31,8 @@ pub struct Tree {
 impl Tree {
     pub fn new() -> Tree {
         Tree {
+            tree_view: Weak::new(),
+            list_view: Weak::new(),
             tmp_cursor: 0,
             tmp_lines: vec![
                 ViewLine::new("-+---mnt".to_owned(), 5, 8),
@@ -71,6 +77,9 @@ impl Tree {
     pub fn move_to_next_dir(&mut self) -> Result<(), AppError> {
         if self.tmp_cursor < self.tmp_lines.len() as i32 - 1 {
             self.tmp_cursor += 1;
+        }
+        if let Some(lv) = self.list_view.upgrade() {
+            lv.borrow_mut().set_flags(true, true);
         }
         Ok(())
     }

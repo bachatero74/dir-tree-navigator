@@ -7,6 +7,7 @@ mod graph {
     pub mod tree_view;
 }
 
+use std::cell::Ref;
 use std::process::ExitCode;
 use std::{cell::RefCell, rc::Rc};
 
@@ -19,8 +20,11 @@ use tree::*;
 fn run(screen: &Screen) -> Result<(), AppError> {
     let tree = Rc::new(RefCell::new(Tree::new()));
 
-    let tree_view = Box::new(TreeView::new(tree.clone()));
-    let list_view = Box::new(ListView::new(tree.clone()));
+    let tree_view = Rc::new(RefCell::new(TreeView::new(tree.clone())));
+    let list_view = Rc::new(RefCell::new(ListView::new(tree.clone())));
+
+    tree.borrow_mut().tree_view = Rc::downgrade(&tree_view);
+    tree.borrow_mut().list_view = Rc::downgrade(&list_view);
 
     let left_displ = Rc::new(RefCell::new(Display::new(
         tree_view,
@@ -37,7 +41,7 @@ fn run(screen: &Screen) -> Result<(), AppError> {
     loop {
         // TODO: wprowadzić inwalidację widoku na potrzeby DisplContent.prepare
         // jeśli widok nie zostanie inwalidowany, nie będzie potrzeby regenerowania jego zawartości (np. drzewa) w funkcji prepare()
-        left_displ.borrow_mut().display()?; 
+        left_displ.borrow_mut().display()?;
         right_displ.borrow_mut().display()?;
 
         let ch: i32 = getch();

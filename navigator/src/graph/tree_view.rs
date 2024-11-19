@@ -10,6 +10,8 @@ use crate::tree::*;
 pub struct TreeView {
     tree: Rc<RefCell<Tree>>,
     lines: Vec<ViewLine>,
+    needs_render: bool,
+    modified: bool,
 }
 
 impl TreeView {
@@ -17,11 +19,17 @@ impl TreeView {
         TreeView {
             tree,
             lines: Vec::new(),
+            needs_render: true,
+            modified: true,
         }
     }
 }
 
 impl DisplContent for TreeView {
+    fn modified(&self) -> bool {
+        self.modified || self.needs_render
+    }
+
     fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError> {
         self.lines.clear();
         let tree = self.tree.borrow();

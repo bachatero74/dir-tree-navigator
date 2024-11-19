@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::common::*;
 use ncurses::*;
 
@@ -25,10 +27,11 @@ pub trait DisplContent {
     fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError>;
     fn get_line(&self, y: usize) -> Result<&ViewLine, AppError>;
     fn process_key(&self, key: i32) -> Result<(), AppError>;
+    fn modified(&self) -> bool;
 }
 
 pub struct Display {
-    content: Box<dyn DisplContent>,
+    content: Rc<RefCell<dyn DisplContent>>,
     window: WINDOW,
     size: Size,
     //offset_x: i32,
@@ -36,7 +39,7 @@ pub struct Display {
 }
 
 impl Display {
-    pub fn new(content: Box<dyn DisplContent>, window: &WINDOW, size: &Size) -> Display {
+    pub fn new(content: Rc<RefCell<dyn DisplContent>>, window: &WINDOW, size: &Size) -> Display {
         Display {
             content,
             window: *window,
@@ -48,7 +51,10 @@ impl Display {
 
     pub fn display(&mut self) -> Result<(), AppError> {
         let mut info: DisplInfo = Default::default();
-        self.content.prepare(&mut info)?;
+        if !self.content.borrow().modified() {
+            return Ok(());
+        }
+        self.content.borrow_mut().prepare(&mut info)?;
 
         if info.curs_line - self.offset_y > self.size.height - 1 {
             self.offset_y = info.curs_line - self.size.height + 1;
@@ -67,7 +73,8 @@ impl Display {
                 // TODO: nieoptymalne
                 break;
             }
-            let view_line = self.content.get_line(ln as usize)?;
+            let cont = self.content.borrow();
+            let view_line = cont.get_line(ln as usize)?;
             self.print_line(
                 y as i32,
                 0,
@@ -82,7 +89,7 @@ impl Display {
     }
 
     pub fn process_key(&self, key: i32) -> Result<(), AppError> {
-        self.content.process_key(key)
+        self.content.borrow().process_key(key)
     }
 
     fn print_line(&self, y: i32, x: i32, vline: &ViewLine, offs: i32, cursor: bool) {
