@@ -77,8 +77,6 @@ impl Display {
             );
         }
 
-        //mvwprintw(self.window, info.curs_line as i32 - self.offset_y, 0, ">");
-
         wrefresh(self.window);
         Ok(())
     }
