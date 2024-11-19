@@ -68,10 +68,16 @@ impl Display {
                 break;
             }
             let view_line = self.content.get_line(ln as usize)?;
-            self.print_line(y as i32, 0, view_line, offset_x);
+            self.print_line(
+                y as i32,
+                0,
+                view_line,
+                offset_x,
+                y + self.offset_y == info.curs_line,
+            );
         }
 
-        mvwprintw(self.window, info.curs_line as i32 - self.offset_y, 0, ">");
+        //mvwprintw(self.window, info.curs_line as i32 - self.offset_y, 0, ">");
 
         wrefresh(self.window);
         Ok(())
@@ -81,25 +87,26 @@ impl Display {
         self.content.process_key(key)
     }
 
-    fn print_line(&self, y: i32, x: i32, vline: &ViewLine, offs: i32) {
-        wattr_off(self.window,A_REVERSE);
+    fn print_line(&self, y: i32, x: i32, vline: &ViewLine, offs: i32, cursor: bool) {
+        wattr_off(self.window, A_REVERSE);
         wmove(self.window, y, x);
         for (i, ch) in vline.content.chars().enumerate() {
             if i < offs as usize {
                 continue;
             }
-            if i-(offs as usize)>= self.size.width as usize {
+            if i - (offs as usize) >= self.size.width as usize {
                 break;
             }
-            if i>=vline.x2 as usize{
-                wattr_off(self.window,A_REVERSE);
-            }
-            else if i>=vline.x1 as usize {
-                wattr_on(self.window,A_REVERSE);
+            if cursor {
+                if i >= vline.x2 as usize {
+                    wattr_off(self.window, A_REVERSE);
+                } else if i >= vline.x1 as usize {
+                    wattr_on(self.window, A_REVERSE);
+                }
             }
             waddch(self.window, ch as u32);
         }
-        wattr_off(self.window,A_REVERSE);
+        wattr_off(self.window, A_REVERSE);
     }
 }
 
