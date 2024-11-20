@@ -1,12 +1,13 @@
-use std::cell::RefCell;
-use std::rc::Weak;
+use std::{cell::RefCell, rc::{Rc, Weak}};
 
 use crate::common::AppError;
 use crate::graph::display::*; // Tymczasowe
 use crate::graph::list_view::ListView;
 use crate::graph::tree_view::TreeView;
 
-pub struct Node {}
+pub struct Node {
+    pub name: String,
+}
 
 pub struct FileNode {
     pub node: Node,
@@ -19,6 +20,7 @@ pub struct DirNode {
 pub enum TreeNode {
     File(FileNode),
     Dir(DirNode),
+    UpDir,
 }
 
 pub struct ModifFlags {
@@ -43,11 +45,21 @@ pub struct Tree {
     pub list_view: Weak<RefCell<ListView>>,
     pub tmp_lines: Vec<ViewLine>,
     pub tmp_cursor: i32,
+
+    pub root: Rc<RefCell<DirNode>>,
+    curr_dir: Rc<RefCell<DirNode>>,
 }
 
 impl Tree {
     pub fn new() -> Tree {
+        let root=Rc::new(RefCell::new(DirNode {
+            node: Node {
+                name: "/".to_owned(),
+            },
+        }));
         Tree {
+            root: root.clone(),
+            curr_dir: root.clone(),
             tree_view: Weak::new(),
             list_view: Weak::new(),
             tmp_cursor: 0,
