@@ -26,7 +26,7 @@ impl ViewLine {
 pub trait DisplContent {
     fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError>;
     fn get_line(&self, y: usize) -> Result<&ViewLine, AppError>;
-    fn process_key(&self, key: i32) -> Result<(), AppError>;
+    fn process_key(&mut self, key: i32) -> Result<(), AppError>;
     fn modified(&self) -> bool;
 }
 
@@ -51,9 +51,9 @@ impl Display {
 
     pub fn display(&mut self) -> Result<(), AppError> {
         let mut info: DisplInfo = Default::default();
-        if !self.content.borrow().modified() {
-            return Ok(());
-        }
+        // if !self.content.borrow().modified() {
+        //     return Ok(());
+        // }
         self.content.borrow_mut().prepare(&mut info)?;
 
         if info.curs_line - self.offset_y > self.size.height - 1 {
@@ -89,7 +89,7 @@ impl Display {
     }
 
     pub fn process_key(&self, key: i32) -> Result<(), AppError> {
-        self.content.borrow().process_key(key)
+        self.content.borrow_mut().process_key(key)
     }
 
     fn print_line(&self, y: i32, x: i32, vline: &ViewLine, offs: i32, cursor: bool) {

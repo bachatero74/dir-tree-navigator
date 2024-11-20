@@ -21,6 +21,23 @@ pub enum TreeNode {
     Dir(DirNode),
 }
 
+pub struct ModifFlags {
+    pub render: bool,
+    pub print: bool,
+}
+
+impl ModifFlags {
+    pub fn new() -> ModifFlags {
+        ModifFlags {
+            render: true,
+            print: true,
+        }
+    }
+    pub fn from(render: bool, print: bool) -> ModifFlags {
+        ModifFlags { render, print }
+    }
+}
+
 pub struct Tree {
     pub tree_view: Weak<RefCell<TreeView>>,
     pub list_view: Weak<RefCell<ListView>>,
@@ -67,20 +84,21 @@ impl Tree {
         }
     }
 
-    pub fn move_to_prev_dir(&mut self) -> Result<(), AppError> {
+    pub fn move_to_prev_dir(&mut self) -> Result<(ModifFlags), AppError> {
         if self.tmp_cursor > 0 {
             self.tmp_cursor -= 1;
         }
-        Ok(())
+        Ok(ModifFlags::from(false, true))
     }
 
-    pub fn move_to_next_dir(&mut self) -> Result<(), AppError> {
+    pub fn move_to_next_dir(&mut self) -> Result<(ModifFlags), AppError> {
         if self.tmp_cursor < self.tmp_lines.len() as i32 - 1 {
             self.tmp_cursor += 1;
         }
         if let Some(lv) = self.list_view.upgrade() {
-            lv.borrow_mut().set_flags(true, true);
+            lv.borrow_mut().modif_flags = ModifFlags::from(true, true);
+            return Ok(ModifFlags::from(false, true));
         }
-        Ok(())
+        Err(AppError::StrError("".to_owned()))
     }
 }

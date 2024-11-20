@@ -7,8 +7,7 @@ use crate::tree::*;
 pub struct ListView {
     tree: Rc<RefCell<Tree>>,
     test_line: String,
-    needs_render: bool,
-    modified: bool,
+    pub modif_flags: ModifFlags,
 }
 
 impl ListView {
@@ -16,20 +15,14 @@ impl ListView {
         ListView {
             tree,
             test_line: "ListView".to_owned(),
-            needs_render: true,
-            modified: true,
+            modif_flags: ModifFlags::new(),
         }
-    }
-
-    pub fn set_flags(&mut self, needs_render: bool, modified: bool) {
-        self.needs_render = needs_render;
-        self.modified = modified;
     }
 }
 
 impl DisplContent for ListView {
     fn modified(&self) -> bool {
-        self.modified || self.needs_render
+        self.modif_flags.print
     }
 
     fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError> {
@@ -41,7 +34,7 @@ impl DisplContent for ListView {
         todo!()
     }
 
-    fn process_key(&self, key: i32) -> Result<(), AppError> {
+    fn process_key(&mut self, key: i32) -> Result<(), AppError> {
         Ok(())
     }
 }

@@ -10,8 +10,7 @@ use crate::tree::*;
 pub struct TreeView {
     tree: Rc<RefCell<Tree>>,
     lines: Vec<ViewLine>,
-    needs_render: bool,
-    modified: bool,
+    pub modif_flags: ModifFlags,
 }
 
 impl TreeView {
@@ -19,19 +18,21 @@ impl TreeView {
         TreeView {
             tree,
             lines: Vec::new(),
-            needs_render: true,
-            modified: true,
+            modif_flags: ModifFlags::new(),
         }
     }
 }
 
 impl DisplContent for TreeView {
     fn modified(&self) -> bool {
-        self.modified || self.needs_render
+        self.modif_flags.print
     }
 
     fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError> {
         self.lines.clear();
+        if self.modif_flags.render {
+            //println!("tv remder");
+        }
         let tree = self.tree.borrow();
         info.lines_count = tree.tmp_lines.len() as i32;
         info.curs_line = tree.tmp_cursor;
@@ -57,11 +58,12 @@ impl DisplContent for TreeView {
         }
     }
 
-    fn process_key(&self, key: i32) -> Result<(), AppError> {
+    fn process_key(&mut self, key: i32) -> Result<(), AppError> {
         match key {
-            KEY_UP => self.tree.borrow_mut().move_to_prev_dir(),
-            KEY_DOWN => self.tree.borrow_mut().move_to_next_dir(),
-            _ => Ok(()),
-        }
+            KEY_UP => self.modif_flags = self.tree.borrow_mut().move_to_prev_dir()?,
+            KEY_DOWN => self.modif_flags = self.tree.borrow_mut().move_to_next_dir()?,
+            _ => {}
+        };
+        Ok(())
     }
 }
