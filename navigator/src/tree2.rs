@@ -112,18 +112,30 @@ fn test_main() {
 
     println!("pwd={}", tree.current.borrow().sys_node.name);
 
-    let mut nc: Option<TreeNodeRef> = None;
-    {
+    // let mut nc: Option<TreeNodeRef> = None;
+    // {
+    //     let current = tree.current.borrow();
+
+    //     if let Some(prev) = &current.prev.upgrade() {
+    //         nc = Some(prev.clone());
+    //     }
+    // }
+
+    // if let Some(tn)=nc{
+    //     tree.current=tn;
+    // }
+
+
+    if let Some(tn)={
         let current = tree.current.borrow();
-
-        if let Some(prev) = &current.prev.upgrade() {
-            nc = Some(prev.clone());
+        match &current.prev.upgrade() {
+            Some(prev)=>Some(prev.clone()),
+            None=>None,
         }
-    }
-
-    if let Some(tn)=nc{
+    }{
         tree.current=tn;
     }
+
     println!("pwd={}", tree.current.borrow().sys_node.name);
 
     let sys_node = SysNode {

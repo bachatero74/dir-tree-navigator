@@ -6,6 +6,7 @@ mod graph {
     pub mod list_view;
     pub mod tree_view;
 }
+mod tree2;
 
 use std::cell::Ref;
 use std::process::ExitCode;
