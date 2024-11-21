@@ -1,4 +1,7 @@
-use std::{cell::RefCell, rc::{Rc, Weak}};
+use std::{
+    cell::RefCell,
+    rc::{Rc, Weak},
+};
 
 use crate::common::AppError;
 use crate::graph::display::*; // Tymczasowe
@@ -52,7 +55,7 @@ pub struct Tree {
 
 impl Tree {
     pub fn new() -> Tree {
-        let root=Rc::new(RefCell::new(DirNode {
+        let root = Rc::new(RefCell::new(DirNode {
             node: Node {
                 name: "/".to_owned(),
             },

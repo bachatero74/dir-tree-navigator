@@ -52,20 +52,15 @@ impl TreeNode {
 
 // -----------------------------------------------------------------------------
 
-struct TreeCursor {
-    node: Option<TreeNodeRef>, // Refers to parent
-    pos: usize,                // Index in parent vec
-}
-
-struct ListCursor {
-    node: TreeNodeRef, // Refers to parent
-    pos: usize,        // Index in parent vec
+struct Cursor {
+    node: Option<TreeNodeRef>,
+    tpos: usize,
+    lpos: usize,
 }
 
 pub struct Tree {
     pub root: TreeNodeRef,
-    tree_cursor: TreeCursor,
-    list_cursor: ListCursor,
+    cursor: Cursor,
 }
 
 impl Tree {
@@ -73,41 +68,68 @@ impl Tree {
         let root = TreeNode::create("/", NodeType::Dir);
         Tree {
             root: root.clone(),
-            tree_cursor: TreeCursor { node: None, pos: 0 },
-            list_cursor: ListCursor { node: root, pos: 0 },
+            cursor: Cursor {
+                node: None,
+                tpos: 0,
+                lpos: 0,
+            },
         }
     }
 
     pub fn curr_dir(&self) -> TreeNodeRef {
-        if let Some(n) = &self.tree_cursor.node {
+        if let Some(n) = &self.cursor.node {
             let nb = n.borrow();
-            if let Some(sn) = nb.subnodes.get(self.tree_cursor.pos) {
+            if let Some(sn) = nb.subnodes.get(self.cursor.tpos) {
                 return sn.clone();
             }
         }
         self.root.clone()
     }
 
-    pub fn tmv_next(&self) {}
+    pub fn curr_file(&self) -> Option<TreeNodeRef>{
+        let cd=self.curr_dir();
+        let result = match cd.borrow().subnodes.get(self.cursor.lpos) {
+            Some(node)=>Some(node.clone()),
+            None=>None
+        };
+        result
+    }
+
+    pub fn tmv_next(&mut self) {
+        if let Some(n) = &self.cursor.node {
+            if self.cursor.tpos<n.borrow().subnodes.len()-1{
+                self.cursor.tpos+=1;
+                self.cursor.lpos=0;
+            }
+        }
+    }
 
     pub fn tmv_subdir(&mut self) {
         let cd: TreeNodeRef = self.curr_dir();
         if cd.borrow().subnodes.len() > 0 {
-            self.tree_cursor.node = Some(cd);
-            self.tree_cursor.pos = 0;
+            self.cursor.node = Some(cd);
+            self.cursor.tpos = 0;
+            self.cursor.lpos = 0;
         }
     }
 
     pub fn tmv_updir(&mut self) {
-        if let Some(n) = &self.tree_cursor.node {
-            let nc:TreeCursor;
+        if let Some(n) = &self.cursor.node {
+            let nc: Cursor;
             if let Some(p) = n.borrow().parent.upgrade() {
-                nc=TreeCursor{ node: Some(p.clone()), pos: 0 };
+                nc = Cursor {
+                    node: Some(p.clone()),
+                    tpos: 0,
+                    lpos: 0,
+                };
+            } else {
+                nc = Cursor {
+                    node: None,
+                    tpos: 0,
+                    lpos: 0,
+                };
             }
-            else{
-                nc=TreeCursor{ node:None, pos: 0 };
-            }
-            self.tree_cursor=nc;
+            self.cursor = nc;
         }
     }
 }
