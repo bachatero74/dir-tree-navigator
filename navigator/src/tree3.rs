@@ -86,20 +86,27 @@ impl Tree {
         self.root.clone()
     }
 
-    pub fn curr_file(&self) -> Option<TreeNodeRef>{
-        let cd=self.curr_dir();
+    pub fn curr_file(&self) -> Option<TreeNodeRef> {
+        let cd = self.curr_dir();
         let result = match cd.borrow().subnodes.get(self.cursor.lpos) {
-            Some(node)=>Some(node.clone()),
-            None=>None
+            Some(node) => Some(node.clone()),
+            None => None,
         };
         result
     }
 
+    pub fn lmv_next(&mut self) {
+        let cd = self.curr_dir();
+        if self.cursor.lpos < cd.borrow().subnodes.len() - 1 {
+            self.cursor.lpos += 1;
+        }
+    }
+
     pub fn tmv_next(&mut self) {
         if let Some(n) = &self.cursor.node {
-            if self.cursor.tpos<n.borrow().subnodes.len()-1{
-                self.cursor.tpos+=1;
-                self.cursor.lpos=0;
+            if self.cursor.tpos < n.borrow().subnodes.len() - 1 {
+                self.cursor.tpos += 1;
+                self.cursor.lpos = 0;
             }
         }
     }

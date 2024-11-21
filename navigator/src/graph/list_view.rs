@@ -38,4 +38,3 @@ impl DisplContent for ListView {
         Ok(())
     }
 }
-
