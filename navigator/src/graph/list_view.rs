@@ -28,8 +28,20 @@ impl ListView {
                 &n.sys_node.name,
                 0,
                 n.sys_node.name.len() as i32,
+                &node,
             ));
         }
+    }
+
+    fn find_cursor(&self) -> i32 {
+        if let Some(cf) = self.tree.borrow().curr_file(){
+            for (i, line) in self.lines.iter().enumerate() {
+                if Rc::ptr_eq(&line.src_node, &cf) {
+                    return i as i32;
+                }
+            }
+        }
+        -1
     }
 }
 
@@ -43,7 +55,7 @@ impl DisplContent for ListView {
             self.list_curr_node();
         }
         info.lines_count = self.lines.len() as i32;
-        info.curs_line = 0;
+        info.curs_line = self.find_cursor();
         info.curs_x1 = 0;
         info.curs_x2 = 0;
         Ok(())

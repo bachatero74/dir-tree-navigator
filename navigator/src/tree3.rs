@@ -18,7 +18,7 @@ pub struct SysNode {
 }
 
 pub type TreeNodeRef = Rc<RefCell<TreeNode>>;
-type TreeNodeWeak = Weak<RefCell<TreeNode>>;
+pub type TreeNodeWeak = Weak<RefCell<TreeNode>>;
 
 // -----------------------------------------------------------------------------
 

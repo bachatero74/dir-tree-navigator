@@ -26,8 +26,9 @@ impl TreeView {
         let n = node.borrow();
         self.lines.push(ViewLine::new(
             &format!("{}{}", "--".repeat(level), n.sys_node.name),
-            0,
-            n.sys_node.name.len() as i32,
+            (2 * level) as i32,
+            (2 * level + n.sys_node.name.len()) as i32,
+            &node,
         ));
         for sn in &n.subnodes {
             self.list_node(sn, level + 1);
@@ -38,6 +39,16 @@ impl TreeView {
         self.lines.clear();
         let root = &self.tree.borrow().root.clone(); // TODO: clone? - przyjrzeć się temu
         self.list_node(root, 0);
+    }
+
+    fn find_cursor(&self) -> i32 {
+        let cd = self.tree.borrow().curr_dir();
+        for (i, line) in self.lines.iter().enumerate() {
+            if Rc::ptr_eq(&line.src_node, &cd) {
+                return i as i32;
+            }
+        }
+        -1
     }
 }
 
@@ -51,7 +62,7 @@ impl DisplContent for TreeView {
             self.list_tree();
         }
         info.lines_count = self.lines.len() as i32;
-        info.curs_line = 0;
+        info.curs_line = self.find_cursor();
         info.curs_x1 = 0;
         info.curs_x2 = 0;
         Ok(())

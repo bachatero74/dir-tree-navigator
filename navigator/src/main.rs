@@ -35,6 +35,7 @@ fn run(screen: &Screen) -> Result<(), AppError> {
         TreeNode::append(&mut tree.root, mnt.clone());
 
         tree.tmv_subdir();
+        tree.lmv_next();
     }
 
     let tree_view = Rc::new(RefCell::new(TreeView::new(tree.clone())));

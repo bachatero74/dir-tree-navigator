@@ -1,12 +1,13 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::common::*;
+use crate::tree3::TreeNodeRef;
 use ncurses::*;
 
 #[derive(Default)]
 pub struct DisplInfo {
     pub lines_count: i32,
-    pub curs_line: i32,
+    pub curs_line: i32, // TODO: optional?
     pub curs_x1: i32,
     pub curs_x2: i32,
 }
@@ -15,14 +16,16 @@ pub struct ViewLine {
     pub content: String,
     pub x1: i32,
     pub x2: i32,
+    pub src_node: TreeNodeRef,
 }
 
 impl ViewLine {
-    pub fn new(content: &str, x1: i32, x2: i32) -> ViewLine {
+    pub fn new(content: &str, x1: i32, x2: i32, src_node: &TreeNodeRef) -> ViewLine {
         ViewLine {
             content: content.to_owned(),
             x1,
             x2,
+            src_node: src_node.clone(),
         }
     }
 }
@@ -60,12 +63,14 @@ impl Display {
         }
         self.content.borrow_mut().prepare(&mut info)?;
 
-        if info.curs_line - self.offset_y > self.size.height - 1 {
-            self.offset_y = info.curs_line - self.size.height + 1;
-        }
+        if info.curs_line >= 0 {
+            if info.curs_line - self.offset_y > self.size.height - 1 {
+                self.offset_y = info.curs_line - self.size.height + 1;
+            }
 
-        if info.curs_line - self.offset_y < 0 {
-            self.offset_y = info.curs_line;
+            if info.curs_line - self.offset_y < 0 {
+                self.offset_y = info.curs_line;
+            }
         }
 
         let offset_x = fit_str(info.curs_x1, info.curs_x2, self.size.width);
@@ -84,7 +89,7 @@ impl Display {
                 0,
                 view_line,
                 offset_x,
-                y + self.offset_y == info.curs_line,
+                info.curs_line >= 0 && (y + self.offset_y == info.curs_line),
             );
         }
 
