@@ -1,13 +1,12 @@
 mod common;
 mod screen;
-mod tree3;
+mod tree;
 mod graph {
     pub mod display;
     pub mod list_view;
     pub mod tree_view;
 }
 
-use std::cell::Ref;
 use std::process::ExitCode;
 use std::{cell::RefCell, rc::Rc};
 
@@ -15,7 +14,7 @@ use common::*;
 use graph::{display::*, list_view::*, tree_view::*};
 use ncurses::*;
 use screen::*;
-use tree3::*;
+use tree::*;
 
 fn run(screen: &Screen) -> Result<(), AppError> {
     let tree = Rc::new(RefCell::new(Tree::new()));

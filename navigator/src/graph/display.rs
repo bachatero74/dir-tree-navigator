@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::common::*;
-use crate::tree3::TreeNodeRef;
+use crate::tree::TreeNodeRef;
 use ncurses::*;
 
 #[derive(Default)]

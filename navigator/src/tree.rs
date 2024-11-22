@@ -4,26 +4,62 @@ use std::{
 };
 
 use crate::common::AppError;
-use crate::graph::display::*; // Tymczasowe
 use crate::graph::list_view::ListView;
 use crate::graph::tree_view::TreeView;
 
-pub struct Node {
-    pub name: String,
-}
-
-pub struct FileNode {
-    pub node: Node,
-}
-
-pub struct DirNode {
-    pub node: Node,
-}
-
-pub enum TreeNode {
-    File(FileNode),
-    Dir(DirNode),
+pub enum NodeType {
+    File,
+    Dir,
     UpDir,
+}
+pub struct SysNode {
+    pub name: String,
+    pub typ: NodeType,
+}
+
+pub type TreeNodeRef = Rc<RefCell<TreeNode>>;
+pub type TreeNodeWeak = Weak<RefCell<TreeNode>>;
+
+// -----------------------------------------------------------------------------
+
+pub struct TreeNode {
+    pub sys_node: SysNode,
+    pub subnodes: Vec<TreeNodeRef>,
+    pub parent: TreeNodeWeak,
+}
+
+impl TreeNode {
+    pub fn new(sys_node: SysNode) -> TreeNodeRef {
+        Rc::new(RefCell::new(Self {
+            sys_node,
+            subnodes: Vec::new(),
+            parent: Weak::new(),
+        }))
+    }
+
+    pub fn create(name: &str, typ: NodeType) -> TreeNodeRef {
+        Rc::new(RefCell::new(Self {
+            sys_node: SysNode {
+                name: name.to_owned(),
+                typ,
+            },
+            subnodes: Vec::new(),
+            parent: Weak::new(),
+        }))
+    }
+
+    pub fn append(this: &mut TreeNodeRef, subn: TreeNodeRef) {
+        subn.borrow_mut().parent = Rc::downgrade(this);
+        this.borrow_mut().subnodes.push(subn);
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+struct Cursor {
+    node: Option<TreeNodeRef>,
+    tpos: usize,
+    lpos: usize,
 }
 
 pub struct ModifFlags {
@@ -43,77 +79,91 @@ impl ModifFlags {
     }
 }
 
+// -----------------------------------------------------------------------------
+
 pub struct Tree {
     pub tree_view: Weak<RefCell<TreeView>>,
     pub list_view: Weak<RefCell<ListView>>,
-    pub tmp_lines: Vec<ViewLine>,
-    pub tmp_cursor: i32,
-
-    pub root: Rc<RefCell<DirNode>>,
-    curr_dir: Rc<RefCell<DirNode>>,
+    pub root: TreeNodeRef,
+    cursor: Cursor,
 }
 
 impl Tree {
     pub fn new() -> Tree {
-        let root = Rc::new(RefCell::new(DirNode {
-            node: Node {
-                name: "/".to_owned(),
-            },
-        }));
+        let root = TreeNode::create("/", NodeType::Dir);
         Tree {
-            root: root.clone(),
-            curr_dir: root.clone(),
             tree_view: Weak::new(),
             list_view: Weak::new(),
-            tmp_cursor: 0,
-            tmp_lines: vec![
-                ViewLine::new("-+---mnt".to_owned(), 5, 8),
-                ViewLine::new(" +---home".to_owned(), 5, 9),
-                ViewLine::new(" +---cdrom".to_owned(), 5, 10),
-                ViewLine::new(" |  +----development12".to_owned(), 9, 20),
-                ViewLine::new(" +---proc".to_owned(), 5, 9),
-                ViewLine::new("-+---abcde".to_owned(), 5, 10),
-                ViewLine::new(" +---a1cde".to_owned(), 5, 10),
-                ViewLine::new(" +---a2cde".to_owned(), 5, 10),
-                ViewLine::new(" |  +----development12".to_owned(), 9, 20),
-                ViewLine::new(" +---abcde".to_owned(), 5, 10),
-                ViewLine::new("-+---abcde".to_owned(), 5, 10),
-                ViewLine::new(" +---a1cde".to_owned(), 5, 10),
-                ViewLine::new(" +---a2cde".to_owned(), 5, 10),
-                ViewLine::new(" +---abcde".to_owned(), 5, 10),
-                ViewLine::new("-+---abcde".to_owned(), 5, 10),
-                ViewLine::new(" +---a1cde".to_owned(), 5, 10),
-                ViewLine::new(" +---a2cde".to_owned(), 5, 10),
-                ViewLine::new(" +---abcde".to_owned(), 5, 10),
-                ViewLine::new("-+---abcde".to_owned(), 5, 10),
-                ViewLine::new(" +---a1cde".to_owned(), 5, 10),
-                ViewLine::new(" +---a2cde".to_owned(), 5, 10),
-                ViewLine::new(" |  +----development12".to_owned(), 9, 20),
-                ViewLine::new(" +---abcde".to_owned(), 5, 10),
-                ViewLine::new("-+---abcde".to_owned(), 5, 10),
-                ViewLine::new(" +---a1cde".to_owned(), 5, 10),
-                ViewLine::new(" +---a2cde".to_owned(), 5, 10),
-                ViewLine::new(" |  +----development12".to_owned(), 9, 20),
-                ViewLine::new(" +---abcde".to_owned(), 5, 10),
-            ],
+            root: root.clone(),
+            cursor: Cursor {
+                node: None,
+                tpos: 0,
+                lpos: 0,
+            },
         }
     }
 
-    pub fn move_to_prev_dir(&mut self) -> Result<(ModifFlags), AppError> {
-        if self.tmp_cursor > 0 {
-            self.tmp_cursor -= 1;
+    pub fn curr_dir(&self) -> TreeNodeRef {
+        if let Some(n) = &self.cursor.node {
+            let nb = n.borrow();
+            if let Some(sn) = nb.subnodes.get(self.cursor.tpos) {
+                return sn.clone();
+            }
         }
-        Ok(ModifFlags::from(false, true))
+        self.root.clone()
     }
 
-    pub fn move_to_next_dir(&mut self) -> Result<(ModifFlags), AppError> {
-        if self.tmp_cursor < self.tmp_lines.len() as i32 - 1 {
-            self.tmp_cursor += 1;
+    pub fn curr_file(&self) -> Option<TreeNodeRef> {
+        let cd = self.curr_dir();
+        let result = match cd.borrow().subnodes.get(self.cursor.lpos) {
+            Some(node) => Some(node.clone()),
+            None => None,
+        };
+        result
+    }
+
+    pub fn lmv_next(&mut self) {
+        let cd = self.curr_dir();
+        if self.cursor.lpos < cd.borrow().subnodes.len() - 1 {
+            self.cursor.lpos += 1;
         }
-        if let Some(lv) = self.list_view.upgrade() {
-            lv.borrow_mut().modif_flags = ModifFlags::from(true, true);
-            return Ok(ModifFlags::from(false, true));
+    }
+
+    pub fn tmv_next(&mut self) {
+        if let Some(n) = &self.cursor.node {
+            if self.cursor.tpos < n.borrow().subnodes.len() - 1 {
+                self.cursor.tpos += 1;
+                self.cursor.lpos = 0;
+            }
         }
-        Err(AppError::StrError("".to_owned()))
+    }
+
+    pub fn tmv_subdir(&mut self) {
+        let cd: TreeNodeRef = self.curr_dir();
+        if cd.borrow().subnodes.len() > 0 {
+            self.cursor.node = Some(cd);
+            self.cursor.tpos = 0;
+            self.cursor.lpos = 0;
+        }
+    }
+
+    pub fn tmv_updir(&mut self) {
+        if let Some(n) = &self.cursor.node {
+            let nc: Cursor;
+            if let Some(p) = n.borrow().parent.upgrade() {
+                nc = Cursor {
+                    node: Some(p.clone()),
+                    tpos: 0,
+                    lpos: 0,
+                };
+            } else {
+                nc = Cursor {
+                    node: None,
+                    tpos: 0,
+                    lpos: 0,
+                };
+            }
+            self.cursor = nc;
+        }
     }
 }

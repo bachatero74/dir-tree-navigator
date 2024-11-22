@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use super::display::*;
 use crate::common::*;
-use crate::tree3::*;
+use crate::tree::*;
 
 pub struct ListView {
     tree: Rc<RefCell<Tree>>,
