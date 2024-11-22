@@ -5,7 +5,7 @@ use ncurses::KEY_UP;
 
 use super::display::*;
 use crate::common::*;
-use crate::tree::*;
+use crate::tree3::*;
 
 pub struct TreeView {
     tree: Rc<RefCell<Tree>>,
@@ -22,41 +22,38 @@ impl TreeView {
         }
     }
 
-    fn prepare2(&mut self, info: &mut DisplInfo) -> Result<(), AppError> {
-        if self.modif_flags.render {
-            self.lines.clear();
-            
+    fn list_node(&mut self, node: &TreeNodeRef, level: usize) {
+        let n = node.borrow();
+        self.lines.push(ViewLine::new(
+            &format!("{}{}", "--".repeat(level), n.sys_node.name),
+            0,
+            n.sys_node.name.len() as i32,
+        ));
+        for sn in &n.subnodes {
+            self.list_node(sn, level + 1);
         }
-        Ok(())
+    }
+
+    fn list_tree(&mut self) {
+        self.lines.clear();
+        let root = &self.tree.borrow().root.clone(); // TODO: clone? - przyjrzeć się temu
+        self.list_node(root, 0);
     }
 }
 
 impl DisplContent for TreeView {
     fn modified(&self) -> bool {
         self.modif_flags.print
-        
     }
 
     fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError> {
-        self.lines.clear();
         if self.modif_flags.render {
-            //println!("tv remder");
+            self.list_tree();
         }
-        let tree = self.tree.borrow();
-        info.lines_count = tree.tmp_lines.len() as i32;
-        info.curs_line = tree.tmp_cursor;
-        match tree.tmp_lines.get(tree.tmp_cursor as usize) {
-            Some(line) => {
-                info.curs_x1 = line.x1;
-                info.curs_x2 = line.x2;
-            }
-            None => return Err(AppError::StrError("Index out of range".to_owned())),
-        }
-        for i in 0..info.lines_count {
-            let src: &ViewLine = &tree.tmp_lines[i as usize];
-            self.lines
-                .push(ViewLine::new(src.content.clone(), src.x1, src.x2));
-        }
+        info.lines_count = self.lines.len() as i32;
+        info.curs_line = 0;
+        info.curs_x1 = 0;
+        info.curs_x2 = 0;
         Ok(())
     }
 
@@ -69,8 +66,8 @@ impl DisplContent for TreeView {
 
     fn process_key(&mut self, key: i32) -> Result<(), AppError> {
         match key {
-            KEY_UP => self.modif_flags = self.tree.borrow_mut().move_to_prev_dir()?,
-            KEY_DOWN => self.modif_flags = self.tree.borrow_mut().move_to_next_dir()?,
+            // KEY_UP => self.modif_flags = self.tree.borrow_mut().move_to_prev_dir()?,
+            // KEY_DOWN => self.modif_flags = self.tree.borrow_mut().move_to_next_dir()?,
             _ => {}
         };
         Ok(())

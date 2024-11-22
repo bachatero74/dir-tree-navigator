@@ -18,8 +18,12 @@ pub struct ViewLine {
 }
 
 impl ViewLine {
-    pub fn new(content: String, x1: i32, x2: i32) -> ViewLine {
-        ViewLine { content, x1, x2 }
+    pub fn new(content: &str, x1: i32, x2: i32) -> ViewLine {
+        ViewLine {
+            content: content.to_owned(),
+            x1,
+            x2,
+        }
     }
 }
 
@@ -51,9 +55,9 @@ impl Display {
 
     pub fn display(&mut self) -> Result<(), AppError> {
         let mut info: DisplInfo = Default::default();
-        // if !self.content.borrow().modified() {
-        //     return Ok(());
-        // }
+        if !self.content.borrow().modified() {
+            return Ok(());
+        }
         self.content.borrow_mut().prepare(&mut info)?;
 
         if info.curs_line - self.offset_y > self.size.height - 1 {

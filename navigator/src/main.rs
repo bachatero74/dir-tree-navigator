@@ -1,12 +1,11 @@
 mod common;
 mod screen;
-mod tree;
+mod tree3;
 mod graph {
     pub mod display;
     pub mod list_view;
     pub mod tree_view;
 }
-mod tree3;
 
 use std::cell::Ref;
 use std::process::ExitCode;
@@ -16,10 +15,27 @@ use common::*;
 use graph::{display::*, list_view::*, tree_view::*};
 use ncurses::*;
 use screen::*;
-use tree::*;
+use tree3::*;
 
 fn run(screen: &Screen) -> Result<(), AppError> {
     let tree = Rc::new(RefCell::new(Tree::new()));
+
+    {
+        let mut tree = tree.borrow_mut();
+        let mut etc = TreeNode::create("etc", NodeType::Dir);
+        TreeNode::append(&mut tree.root, etc.clone());
+
+        let mut fstab = TreeNode::create("fstab", NodeType::File);
+        TreeNode::append(&mut etc, fstab.clone());
+
+        let mut mtab = TreeNode::create("mtab", NodeType::File);
+        TreeNode::append(&mut etc, mtab.clone());
+
+        let mut mnt = TreeNode::create("mnt", NodeType::Dir);
+        TreeNode::append(&mut tree.root, mnt.clone());
+
+        tree.tmv_subdir();
+    }
 
     let tree_view = Rc::new(RefCell::new(TreeView::new(tree.clone())));
     let list_view = Rc::new(RefCell::new(ListView::new(tree.clone())));
@@ -40,8 +56,6 @@ fn run(screen: &Screen) -> Result<(), AppError> {
 
     let mut focused_displ = left_displ.clone();
     loop {
-        // TODO: wprowadzić inwalidację widoku na potrzeby DisplContent.prepare
-        // jeśli widok nie zostanie inwalidowany, nie będzie potrzeby regenerowania jego zawartości (np. drzewa) w funkcji prepare()
         left_displ.borrow_mut().display()?;
         right_displ.borrow_mut().display()?;
 

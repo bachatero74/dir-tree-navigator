@@ -3,6 +3,10 @@ use std::{
     rc::{Rc, Weak},
 };
 
+use crate::common::AppError;
+use crate::graph::list_view::ListView;
+use crate::graph::tree_view::TreeView;
+
 pub enum NodeType {
     File,
     Dir,
@@ -58,7 +62,28 @@ struct Cursor {
     lpos: usize,
 }
 
+pub struct ModifFlags {
+    pub render: bool,
+    pub print: bool,
+}
+
+impl ModifFlags {
+    pub fn new() -> ModifFlags {
+        ModifFlags {
+            render: true,
+            print: true,
+        }
+    }
+    pub fn from(render: bool, print: bool) -> ModifFlags {
+        ModifFlags { render, print }
+    }
+}
+
+// -----------------------------------------------------------------------------
+
 pub struct Tree {
+    pub tree_view: Weak<RefCell<TreeView>>,
+    pub list_view: Weak<RefCell<ListView>>,
     pub root: TreeNodeRef,
     cursor: Cursor,
 }
@@ -67,6 +92,8 @@ impl Tree {
     pub fn new() -> Tree {
         let root = TreeNode::create("/", NodeType::Dir);
         Tree {
+            tree_view: Weak::new(),
+            list_view: Weak::new(),
             root: root.clone(),
             cursor: Cursor {
                 node: None,
@@ -139,16 +166,4 @@ impl Tree {
             self.cursor = nc;
         }
     }
-}
-
-fn list_node(node: &TreeNodeRef, level: usize) {
-    let n = node.borrow();
-    println!("{}{}", "-".repeat(level), n.sys_node.name);
-    for sn in &n.subnodes {
-        list_node(sn, level + 1);
-    }
-}
-
-fn list_tree(tree: &Tree) {
-    list_node(&tree.root, 0);
 }
