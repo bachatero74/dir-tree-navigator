@@ -24,6 +24,9 @@ impl TreeView {
 
     fn list_node(&mut self, node: &TreeNodeRef, level: usize) {
         let n = node.borrow();
+        if n.sys_node.typ != NodeType::Dir {
+            return;
+        }
         self.lines.push(ViewLine::new(
             &format!("{}{}", "--".repeat(level), n.sys_node.name),
             (2 * level) as i32,

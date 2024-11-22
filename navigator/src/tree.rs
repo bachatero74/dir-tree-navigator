@@ -7,6 +7,7 @@ use crate::common::AppError;
 use crate::graph::list_view::ListView;
 use crate::graph::tree_view::TreeView;
 
+#[derive(PartialEq)]
 pub enum NodeType {
     File,
     Dir,
