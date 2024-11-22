@@ -106,7 +106,7 @@ impl Tree {
     pub fn curr_dir(&self) -> TreeNodeRef {
         if let Some(n) = &self.cursor.node {
             let nb = n.borrow();
-            if let Some(sn) = nb.subnodes.get(self.cursor.tpos) {
+            if let Some(sn) = nb.subnodes.get(self.cursor.tpos) { // TODO: z tym błędem zrobić coś sensownego
                 return sn.clone();
             }
         }
