@@ -21,11 +21,20 @@ impl TreeView {
             modif_flags: ModifFlags::new(),
         }
     }
+
+    fn prepare2(&mut self, info: &mut DisplInfo) -> Result<(), AppError> {
+        if self.modif_flags.render {
+            self.lines.clear();
+            
+        }
+        Ok(())
+    }
 }
 
 impl DisplContent for TreeView {
     fn modified(&self) -> bool {
         self.modif_flags.print
+        
     }
 
     fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError> {
