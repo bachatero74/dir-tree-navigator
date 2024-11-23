@@ -33,6 +33,12 @@ fn run(screen: &Screen) -> Result<(), AppError> {
         let mut mnt = TreeNode::create("mnt", NodeType::Dir);
         TreeNode::append(&mut tree.root, mnt.clone());
 
+        let mut cdrom = TreeNode::create("cdrom", NodeType::File);
+        TreeNode::append(&mut mnt, cdrom.clone());
+
+        let mut wd = TreeNode::create("wd", NodeType::File);
+        TreeNode::append(&mut mnt, wd.clone());
+
         tree.tmv_subdir();
         tree.lmv_next();
     }

@@ -107,7 +107,8 @@ impl Tree {
     pub fn curr_dir(&self) -> TreeNodeRef {
         if let Some(n) = &self.cursor.node {
             let nb = n.borrow();
-            if let Some(sn) = nb.subnodes.get(self.cursor.tpos) { // TODO: z tym błędem zrobić coś sensownego
+            if let Some(sn) = nb.subnodes.get(self.cursor.tpos) {
+                // TODO: z tym błędem zrobić coś sensownego
                 return sn.clone();
             }
         }
@@ -130,13 +131,18 @@ impl Tree {
         }
     }
 
-    pub fn tmv_next(&mut self) {
+    pub fn tmv_next(&mut self) -> Result<(ModifFlags), AppError> {
         if let Some(n) = &self.cursor.node {
             if self.cursor.tpos < n.borrow().subnodes.len() - 1 {
                 self.cursor.tpos += 1;
                 self.cursor.lpos = 0;
             }
         }
+        if let Some(lv) = self.list_view.upgrade() {
+            lv.borrow_mut().modif_flags = ModifFlags::from(true, true);
+            return Ok(ModifFlags::from(true, true));
+        }
+        return Ok(ModifFlags::from(false, true));
     }
 
     pub fn tmv_subdir(&mut self) {

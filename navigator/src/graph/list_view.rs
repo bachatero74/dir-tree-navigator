@@ -34,7 +34,7 @@ impl ListView {
     }
 
     fn find_cursor(&self) -> i32 {
-        if let Some(cf) = self.tree.borrow().curr_file(){
+        if let Some(cf) = self.tree.borrow().curr_file() {
             for (i, line) in self.lines.iter().enumerate() {
                 if Rc::ptr_eq(&line.src_node, &cf) {
                     return i as i32;
