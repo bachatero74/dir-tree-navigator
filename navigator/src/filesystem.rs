@@ -1,6 +1,6 @@
 use std::fs;
 use std::os::unix::fs::MetadataExt;
-use std::time::{UNIX_EPOCH, SystemTime};
+use std::time::{SystemTime, UNIX_EPOCH};
 use users::{get_group_by_gid, get_user_by_uid};
 
 fn print_dir() -> std::io::Result<()> {
@@ -49,7 +49,10 @@ fn print_dir() -> std::io::Result<()> {
         let size = metadata.len();
 
         // Data modyfikacji
-        let modified = metadata.modified()?.duration_since(UNIX_EPOCH).unwrap_or_default();
+        let modified = metadata
+            .modified()?
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default();
         let modified_time = SystemTime::UNIX_EPOCH + modified;
         let datetime: chrono::DateTime<chrono::Local> = modified_time.into();
         let date_str = datetime.format("%b %d %H:%M").to_string();

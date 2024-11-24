@@ -53,6 +53,16 @@ impl TreeNode {
         subn.borrow_mut().parent = Rc::downgrade(this);
         this.borrow_mut().subnodes.push(subn);
     }
+
+    pub fn fill_path(&self, p: &mut String) {
+        if let Some(parent) = self.parent.upgrade() {
+            parent.borrow().fill_path(p);
+            if p != "/" {
+                p.push('/');
+            }
+        }
+        p.push_str(&self.sys_node.name);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -172,5 +182,11 @@ impl Tree {
             }
             self.cursor = nc;
         }
+    }
+
+    pub fn curr_path(&self) -> String {
+        let mut path = String::with_capacity(256);
+        self.curr_dir().borrow().fill_path(&mut path);
+        path
     }
 }

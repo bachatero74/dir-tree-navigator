@@ -1,7 +1,7 @@
 mod common;
+mod filesystem;
 mod screen;
 mod tree;
-mod filesystem;
 mod graph {
     pub mod display;
     pub mod list_view;
@@ -17,7 +17,7 @@ use ncurses::*;
 use screen::*;
 use tree::*;
 
-fn run(screen: &Screen) -> Result<(), AppError> {
+fn run(screen: &Screen) -> Result<(String), AppError> {
     let tree = Rc::new(RefCell::new(Tree::new()));
 
     {
@@ -75,8 +75,8 @@ fn run(screen: &Screen) -> Result<(), AppError> {
         focused_displ.borrow().process_key(ch)?;
         assert!(Rc::ptr_eq(&focused_displ, &left_displ))
     }
-
-    Ok(())
+    let x = Ok(tree.borrow().curr_path());
+    x
 }
 
 fn main() -> ExitCode {
@@ -84,9 +84,15 @@ fn main() -> ExitCode {
     let result = run(&screen);
     screen.close();
 
-    if let Err(err) = result {
-        eprintln!("{}", err);
-        return ExitCode::FAILURE;
+    match result {
+        Ok(path) => {
+            println!("{}", path);
+        }
+        Err(err) => {
+            eprintln!("{}", err);
+            return ExitCode::FAILURE;
+        }
     }
+
     ExitCode::SUCCESS
 }
