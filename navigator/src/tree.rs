@@ -85,9 +85,9 @@ impl ModifFlags {
             print: true,
         }
     }
-    pub fn from(render: bool, print: bool) -> ModifFlags {
-        ModifFlags { render, print }
-    }
+    // pub fn from(render: bool, print: bool) -> ModifFlags {
+    //     ModifFlags { render, print }
+    // }
 }
 
 // -----------------------------------------------------------------------------
@@ -146,13 +146,22 @@ impl Tree {
             if self.cursor.tpos < n.borrow().subnodes.len() - 1 {
                 self.cursor.tpos += 1;
                 self.cursor.lpos = 0;
+
+                if let Some(lv) = self.list_view.upgrade() {
+                    lv.borrow_mut().modif_flags.render = true;
+                    lv.borrow_mut().modif_flags.print = true;
+                }
+
+                return Ok(ModifFlags {
+                    render: false,
+                    print: true,
+                });
             }
         }
-        if let Some(lv) = self.list_view.upgrade() {
-            lv.borrow_mut().modif_flags = ModifFlags::from(true, true);
-            return Ok(ModifFlags::from(true, true));
-        }
-        return Ok(ModifFlags::from(false, true));
+        Ok(ModifFlags {
+            render: false,
+            print: false,
+        })
     }
 
     pub fn tmv_subdir(&mut self) {
