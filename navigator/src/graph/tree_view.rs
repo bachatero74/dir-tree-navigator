@@ -28,7 +28,11 @@ impl TreeView {
             return;
         }
         self.lines.push(ViewLine::new(
-            &format!("{}{}", "--".repeat(level), n.sys_node.name.to_string_lossy().to_string()),
+            &format!(
+                "{}{}",
+                "--".repeat(level),
+                n.sys_node.name.to_string_lossy().to_string()
+            ),
             (2 * level) as i32,
             (2 * level + n.sys_node.name.len()) as i32,
             &node,

@@ -1,5 +1,8 @@
 use std::{
-    cell::RefCell, ffi::{OsStr, OsString}, path::{Path, PathBuf}, rc::{Rc, Weak}
+    cell::RefCell,
+    ffi::{OsStr, OsString},
+    path::{Components, Path, PathBuf},
+    rc::{Rc, Weak},
 };
 
 use crate::common::AppError;
@@ -56,11 +59,12 @@ impl TreeNode {
     pub fn fill_path(&self, p: &mut PathBuf) {
         if let Some(parent) = self.parent.upgrade() {
             parent.borrow().fill_path(p);
-            // if p != "/" {
-            //     p.push('/');
-            // }
         }
         p.push(&self.sys_node.name);
+    }
+
+    pub fn go_to(&self, components: &Components) -> Result<TreeNodeRef, AppError> {
+        todo!()
     }
 }
 
@@ -84,9 +88,6 @@ impl ModifFlags {
             print: true,
         }
     }
-    // pub fn from(render: bool, print: bool) -> ModifFlags {
-    //     ModifFlags { render, print }
-    // }
 }
 
 // -----------------------------------------------------------------------------
@@ -198,7 +199,22 @@ impl Tree {
         path
     }
 
-    // pub fn find(&self,path: &Path)->TreeNodeRef{
-    //
-    // }
+    pub fn goto(&self, path: &Path) -> Result<TreeNodeRef, AppError> {
+        let mut it = path.components();
+        match it.next() {
+            Some(component) => match component {
+                std::path::Component::RootDir => { todo!() }
+                _ => {
+                    return Err(AppError::PathError(
+                        "absolute path expected".to_owned(),
+                        path.to_string_lossy().to_string(),
+                    ));
+                }
+            },
+            None => {
+                return Err(AppError::PathError("empty path".to_owned(), "".to_owned()));
+            }
+        }
+        
+    }
 }
