@@ -8,6 +8,7 @@ mod graph {
     pub mod tree_view;
 }
 
+use std::ffi::OsString;
 use std::path::PathBuf;
 use std::process::ExitCode;
 use std::{cell::RefCell, rc::Rc};
@@ -23,22 +24,22 @@ fn run(screen: &Screen) -> Result<(PathBuf), AppError> {
 
     {
         let mut tree = tree.borrow_mut();
-        let mut etc = TreeNode::create("etc", NodeType::Dir);
+        let mut etc = TreeNode::create(&OsString::from("etc"), NodeType::Dir);
         TreeNode::append(&mut tree.root, etc.clone());
 
-        let mut fstab = TreeNode::create("fstab", NodeType::File);
+        let mut fstab = TreeNode::create(&OsString::from("fstab"), NodeType::File);
         TreeNode::append(&mut etc, fstab.clone());
 
-        let mut mtab = TreeNode::create("mtab", NodeType::File);
+        let mut mtab = TreeNode::create(&OsString::from("mtab"), NodeType::File);
         TreeNode::append(&mut etc, mtab.clone());
 
-        let mut mnt = TreeNode::create("mnt", NodeType::Dir);
+        let mut mnt = TreeNode::create(&OsString::from("mnt"), NodeType::Dir);
         TreeNode::append(&mut tree.root, mnt.clone());
 
-        let mut cdrom = TreeNode::create("cdrom", NodeType::File);
+        let mut cdrom = TreeNode::create(&OsString::from("cdrom"), NodeType::File);
         TreeNode::append(&mut mnt, cdrom.clone());
 
-        let mut wd = TreeNode::create("wd", NodeType::File);
+        let mut wd = TreeNode::create(&OsString::from("wd"), NodeType::File);
         TreeNode::append(&mut mnt, wd.clone());
 
         tree.tmv_subdir();

@@ -25,7 +25,7 @@ impl ListView {
         for node in &cd.borrow().subnodes {
             let n = node.borrow();
             self.lines.push(ViewLine::new(
-                &n.sys_node.name,
+                &n.sys_node.name.to_string_lossy().to_string(),
                 0,
                 n.sys_node.name.len() as i32,
                 &node,

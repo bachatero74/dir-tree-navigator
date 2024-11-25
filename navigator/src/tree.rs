@@ -1,5 +1,5 @@
 use std::{
-    cell::RefCell, ffi::OsString, path::{Path, PathBuf}, rc::{Rc, Weak}
+    cell::RefCell, ffi::{OsStr, OsString}, path::{Path, PathBuf}, rc::{Rc, Weak}
 };
 
 use crate::common::AppError;
@@ -13,7 +13,7 @@ pub enum NodeType {
     UpDir,
 }
 pub struct SysNode {
-    pub name: String,
+    pub name: OsString,
     pub typ: NodeType,
 }
 
@@ -37,10 +37,10 @@ impl TreeNode {
         }))
     }
 
-    pub fn create(name: &str, typ: NodeType) -> TreeNodeRef {
+    pub fn create(name: &OsStr, typ: NodeType) -> TreeNodeRef {
         Rc::new(RefCell::new(Self {
             sys_node: SysNode {
-                name: name.to_owned(),
+                name: name.to_os_string(),
                 typ,
             },
             subnodes: Vec::new(),
@@ -100,7 +100,7 @@ pub struct Tree {
 
 impl Tree {
     pub fn new() -> Tree {
-        let root = TreeNode::create("/", NodeType::Dir);
+        let root = TreeNode::create(&OsString::from("/"), NodeType::Dir);
         Tree {
             tree_view: Weak::new(),
             list_view: Weak::new(),
