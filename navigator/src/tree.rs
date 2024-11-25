@@ -203,7 +203,9 @@ impl Tree {
         let mut it = path.components();
         match it.next() {
             Some(component) => match component {
-                std::path::Component::RootDir => { todo!() }
+                std::path::Component::RootDir => {
+                    todo!()
+                }
                 _ => {
                     return Err(AppError::PathError(
                         "absolute path expected".to_owned(),
@@ -215,6 +217,5 @@ impl Tree {
                 return Err(AppError::PathError("empty path".to_owned(), "".to_owned()));
             }
         }
-        
     }
 }

@@ -24,10 +24,11 @@ impl ListView {
         let cd = self.tree.borrow().curr_dir();
         for node in &cd.borrow().subnodes {
             let n = node.borrow();
+            let name_as_str = n.sys_node.name.to_string_lossy().to_string();
             self.lines.push(ViewLine::new(
-                &n.sys_node.name.to_string_lossy().to_string(),
+                &name_as_str,
                 0,
-                n.sys_node.name.len() as i32,
+                name_as_str.chars().count() as i32,
                 &node,
             ));
         }
