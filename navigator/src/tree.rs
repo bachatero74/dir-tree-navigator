@@ -1,6 +1,5 @@
 use std::{
-    cell::RefCell,
-    rc::{Rc, Weak},
+    cell::RefCell, ffi::OsString, path::{Path, PathBuf}, rc::{Rc, Weak}
 };
 
 use crate::common::AppError;
@@ -54,14 +53,14 @@ impl TreeNode {
         this.borrow_mut().subnodes.push(subn);
     }
 
-    pub fn fill_path(&self, p: &mut String) {
+    pub fn fill_path(&self, p: &mut PathBuf) {
         if let Some(parent) = self.parent.upgrade() {
             parent.borrow().fill_path(p);
-            if p != "/" {
-                p.push('/');
-            }
+            // if p != "/" {
+            //     p.push('/');
+            // }
         }
-        p.push_str(&self.sys_node.name);
+        p.push(&self.sys_node.name);
     }
 }
 
@@ -193,9 +192,13 @@ impl Tree {
         }
     }
 
-    pub fn curr_path(&self) -> String {
-        let mut path = String::with_capacity(256);
+    pub fn curr_path(&self) -> PathBuf {
+        let mut path = PathBuf::new();
         self.curr_dir().borrow().fill_path(&mut path);
         path
     }
+
+    // pub fn find(&self,path: &Path)->TreeNodeRef{
+    //
+    // }
 }

@@ -8,6 +8,7 @@ mod graph {
     pub mod tree_view;
 }
 
+use std::path::PathBuf;
 use std::process::ExitCode;
 use std::{cell::RefCell, rc::Rc};
 
@@ -17,7 +18,7 @@ use ncurses::*;
 use screen::*;
 use tree::*;
 
-fn run(screen: &Screen) -> Result<(String), AppError> {
+fn run(screen: &Screen) -> Result<(PathBuf), AppError> {
     let tree = Rc::new(RefCell::new(Tree::new()));
 
     {
@@ -86,7 +87,7 @@ fn main() -> ExitCode {
 
     match result {
         Ok(path) => {
-            println!("{}", path);
+            println!("{}", path.to_string_lossy().to_string());
         }
         Err(err) => {
             eprintln!("{}", err);
