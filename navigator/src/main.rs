@@ -9,7 +9,7 @@ mod graph {
 }
 
 use std::ffi::OsString;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::{cell::RefCell, rc::Rc};
 
@@ -44,6 +44,8 @@ fn run(screen: &Screen) -> Result<(PathBuf), AppError> {
 
         tree.tmv_subdir();
         tree.lmv_next();
+
+        let res = tree.goto(&PathBuf::from("/mnt/cdrom"))?;
     }
 
     let tree_view = Rc::new(RefCell::new(TreeView::new(tree.clone())));

@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     ffi::{OsStr, OsString},
-    path::{Components, Path, PathBuf},
+    path::{Component, Components, Path, PathBuf},
     rc::{Rc, Weak},
 };
 
@@ -29,6 +29,7 @@ pub struct TreeNode {
     pub sys_node: SysNode,
     pub subnodes: Vec<TreeNodeRef>,
     pub parent: TreeNodeWeak,
+    pub loaded: bool,
 }
 
 impl TreeNode {
@@ -37,6 +38,7 @@ impl TreeNode {
             sys_node,
             subnodes: Vec::new(),
             parent: Weak::new(),
+            loaded: false,
         }))
     }
 
@@ -48,6 +50,7 @@ impl TreeNode {
             },
             subnodes: Vec::new(),
             parent: Weak::new(),
+            loaded: false,
         }))
     }
 
@@ -63,8 +66,13 @@ impl TreeNode {
         p.push(&self.sys_node.name);
     }
 
-    pub fn go_to(&self, components: &Components) -> Result<TreeNodeRef, AppError> {
-        todo!()
+    pub fn load(&mut self) {
+        self.loaded = true;
+    }
+
+    pub fn unload(&mut self) {
+        self.subnodes.clear();
+        self.loaded = false;
     }
 }
 
@@ -199,13 +207,17 @@ impl Tree {
         path
     }
 
-    pub fn goto(&self, path: &Path) -> Result<TreeNodeRef, AppError> {
+    pub fn goto(&mut self, path: &Path) -> Result<TreeNodeRef, AppError> {
         let mut it = path.components();
-        match it.next() {
-            Some(component) => match component {
+        let oc: Option<Component> = it.next();
+        match oc {
+            // some component exists
+            Some(c) => match c {
                 std::path::Component::RootDir => {
-                    todo!()
-                }
+                    let dir = Tree::inner_goto(&self.root, &mut it)?;
+                    
+                    return Ok(dir);
+                },
                 _ => {
                     return Err(AppError::PathError(
                         "absolute path expected".to_owned(),
@@ -217,5 +229,36 @@ impl Tree {
                 return Err(AppError::PathError("empty path".to_owned(), "".to_owned()));
             }
         }
+    }
+
+    fn inner_goto(this_node: &TreeNodeRef, it: &mut Components) -> Result<TreeNodeRef, AppError> {
+        this_node.borrow_mut().load();
+        let oc = it.next();
+        if let Some(c) = oc {
+            match this_node
+                .borrow()
+                .subnodes
+                .iter()
+                .find(|sn| sn.borrow().sys_node.name == c.as_os_str())
+            {
+                None => {
+                    return Err(AppError::PathError(
+                        "path not found".to_owned(),
+                        (c.as_os_str().to_string_lossy().to_string()),
+                    ));
+                }
+                Some(subnode) => {
+                    if subnode.borrow().sys_node.typ != NodeType::Dir {
+                        return Err(AppError::PathError(
+                            "not a directory".to_owned(),
+                            (c.as_os_str().to_string_lossy().to_string()),
+                        ));
+                    }
+                    return Tree::inner_goto(subnode, it);
+                }
+            }
+        }
+
+        Ok(this_node.clone())
     }
 }

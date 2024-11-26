@@ -5,7 +5,7 @@ pub enum AppError {
     #[error("{0}")]
     StrError(String),
 
-    #[error("Path error: {0} in '{1}'")]
+    #[error("Path error: {0} ('{1}')")]
     PathError(String, String),
 
     #[error("Błąd IO: {0}")]
