@@ -35,6 +35,7 @@ pub trait DisplContent {
     fn get_line(&self, y: usize) -> Result<&ViewLine, AppError>;
     fn process_key(&mut self, key: i32) -> Result<(), AppError>;
     fn modified(&self) -> bool;
+    fn reset_modified(&mut self);
 }
 
 pub struct Display {
@@ -94,6 +95,7 @@ impl Display {
         }
 
         wrefresh(self.window);
+        self.content.borrow_mut().reset_modified();
         Ok(())
     }
 

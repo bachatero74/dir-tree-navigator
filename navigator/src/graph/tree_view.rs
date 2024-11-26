@@ -61,6 +61,10 @@ impl DisplContent for TreeView {
         self.modif_flags.print
     }
 
+    fn reset_modified(&mut self) {
+        self.modif_flags.print = false;
+    }
+
     fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError> {
         if self.modif_flags.render {
             self.list_tree();
