@@ -208,7 +208,7 @@ impl Tree {
         path
     }
 
-    pub fn go_to_path(&mut self, path: &Path) -> Result<(), AppError>{
+    pub fn go_to_path(&mut self, path: &Path) -> Result<(), AppError> {
         self.goto(&self.find(path)?)
     }
 

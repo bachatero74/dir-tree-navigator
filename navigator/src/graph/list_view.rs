@@ -54,6 +54,7 @@ impl DisplContent for ListView {
     fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError> {
         if self.modif_flags.render {
             self.list_curr_node();
+            self.modif_flags.render = false;
         }
         info.lines_count = self.lines.len() as i32;
         info.curs_line = self.find_cursor();
