@@ -45,10 +45,10 @@ fn run(screen: &Screen) -> Result<(PathBuf), AppError> {
         //tree.tmv_subdir();
         //tree.lmv_next();
 
-        {
-            let dir = tree.find(&PathBuf::from("/mnt"))?;
-            tree.goto(&dir)?;
+        if let Err(err) = tree.go_to_path(&PathBuf::from("/mnt")){
+            eprintln!("{}",err);
         }
+
     }
 
     let tree_view = Rc::new(RefCell::new(TreeView::new(tree.clone())));

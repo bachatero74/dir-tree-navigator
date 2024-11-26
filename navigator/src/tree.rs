@@ -208,6 +208,11 @@ impl Tree {
         path
     }
 
+    pub fn go_to_path(&mut self, path: &Path) -> Result<(), AppError>{
+        let node = self.find(path)?;
+        self.goto(&node)
+    }
+
     pub fn goto(&mut self, node: &TreeNodeRef) -> Result<(), AppError> {
         match node.borrow().parent.upgrade() {
             Some(parent) => {
