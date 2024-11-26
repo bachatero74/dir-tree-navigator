@@ -42,10 +42,13 @@ fn run(screen: &Screen) -> Result<(PathBuf), AppError> {
         let mut wd = TreeNode::create(&OsString::from("wd"), NodeType::File);
         TreeNode::append(&mut mnt, wd.clone());
 
-        tree.tmv_subdir();
-        tree.lmv_next();
+        //tree.tmv_subdir();
+        //tree.lmv_next();
 
-        let res = tree.goto(&PathBuf::from("/mnt/cdrom"))?;
+        {
+            let dir = tree.find(&PathBuf::from("/mnt"))?;
+            tree.goto(&dir)?;
+        }
     }
 
     let tree_view = Rc::new(RefCell::new(TreeView::new(tree.clone())));

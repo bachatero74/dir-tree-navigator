@@ -1,6 +1,7 @@
 use std::{
     cell::RefCell,
     ffi::{OsStr, OsString},
+    ops::Index,
     path::{Component, Components, Path, PathBuf},
     rc::{Rc, Weak},
 };
@@ -207,17 +208,38 @@ impl Tree {
         path
     }
 
-    pub fn goto(&mut self, path: &Path) -> Result<TreeNodeRef, AppError> {
+    pub fn goto(&mut self, node: &TreeNodeRef) -> Result<(), AppError> {
+        match node.borrow().parent.upgrade() {
+            Some(parent) => {
+                if let Some(idx) = parent
+                    .borrow()
+                    .subnodes
+                    .iter()
+                    .position(|n| Rc::ptr_eq(n, &node))
+                {
+                    self.cursor.tpos = idx;
+                    self.cursor.lpos = 0;
+                } else {
+                    return Err(AppError::StrError("internal goto error".to_owned()));
+                }
+                self.cursor.node = Some(parent);
+            }
+            None => {
+                self.cursor.node = None;
+                self.cursor.tpos = 0;
+                self.cursor.lpos = 0;
+            }
+        }
+        Ok(())
+    }
+
+    pub fn find(&self, path: &Path) -> Result<TreeNodeRef, AppError> {
         let mut it = path.components();
         let oc: Option<Component> = it.next();
         match oc {
             // some component exists
             Some(c) => match c {
-                std::path::Component::RootDir => {
-                    let dir = Tree::inner_goto(&self.root, &mut it)?;
-                    
-                    return Ok(dir);
-                },
+                std::path::Component::RootDir => return Tree::inner_find(&self.root, &mut it),
                 _ => {
                     return Err(AppError::PathError(
                         "absolute path expected".to_owned(),
@@ -231,7 +253,7 @@ impl Tree {
         }
     }
 
-    fn inner_goto(this_node: &TreeNodeRef, it: &mut Components) -> Result<TreeNodeRef, AppError> {
+    fn inner_find(this_node: &TreeNodeRef, it: &mut Components) -> Result<TreeNodeRef, AppError> {
         this_node.borrow_mut().load();
         let oc = it.next();
         if let Some(c) = oc {
@@ -254,7 +276,7 @@ impl Tree {
                             (c.as_os_str().to_string_lossy().to_string()),
                         ));
                     }
-                    return Tree::inner_goto(subnode, it);
+                    return Tree::inner_find(subnode, it);
                 }
             }
         }
