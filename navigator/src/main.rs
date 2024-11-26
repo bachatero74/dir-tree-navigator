@@ -19,7 +19,7 @@ use ncurses::*;
 use screen::*;
 use tree::*;
 
-fn run(screen: &Screen) -> Result<(PathBuf), AppError> {
+fn run(screen: &Screen) -> Result<PathBuf, AppError> {
     let tree = Rc::new(RefCell::new(Tree::new()));
 
     {

@@ -150,7 +150,7 @@ impl Tree {
         }
     }
 
-    pub fn tmv_next(&mut self) -> Result<(ModifFlags), AppError> {
+    pub fn tmv_next(&mut self) -> Result<ModifFlags, AppError> {
         if let Some(n) = &self.cursor.node {
             if self.cursor.tpos < n.borrow().subnodes.len() - 1 {
                 self.cursor.tpos += 1;
@@ -270,14 +270,14 @@ impl Tree {
                 None => {
                     return Err(AppError::PathError(
                         "path not found".to_owned(),
-                        (c.as_os_str().to_string_lossy().to_string()),
+                        c.as_os_str().to_string_lossy().to_string(),
                     ));
                 }
                 Some(subnode) => {
                     if subnode.borrow().sys_node.typ != NodeType::Dir {
                         return Err(AppError::PathError(
                             "not a directory".to_owned(),
-                            (c.as_os_str().to_string_lossy().to_string()),
+                            c.as_os_str().to_string_lossy().to_string(),
                         ));
                     }
                     return Tree::inner_find(subnode, it);
