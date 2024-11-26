@@ -209,8 +209,7 @@ impl Tree {
     }
 
     pub fn go_to_path(&mut self, path: &Path) -> Result<(), AppError>{
-        let node = self.find(path)?;
-        self.goto(&node)
+        self.goto(&self.find(path)?)
     }
 
     pub fn goto(&mut self, node: &TreeNodeRef) -> Result<(), AppError> {
