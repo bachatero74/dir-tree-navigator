@@ -5,6 +5,7 @@ use ncurses::KEY_UP;
 
 use super::display::*;
 use crate::common::*;
+use crate::filesystem::NodeType;
 use crate::tree::*;
 
 pub struct TreeView {

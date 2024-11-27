@@ -1,16 +1,66 @@
-use std::fs::{self, read_dir, DirEntry};
+use std::ffi::{OsStr, OsString};
+use std::fs::{self, DirEntry};
 use std::os::unix::fs::MetadataExt;
 use std::time::{SystemTime, UNIX_EPOCH};
 use users::{get_group_by_gid, get_user_by_uid};
 
-use crate::common::*;
 
-pub fn to_sys_node(e: &DirEntry) -> SysNode {
-    SysNode {
-        name: e.file_name().to_owned(),
-        typ: NodeType::Dir,
+#[derive(PartialEq)]
+pub enum NodeType {
+    File,
+    Dir,
+    UpDir,
+}
+
+pub struct SysNode {
+    pub name: OsString,
+    pub typ: NodeType,
+    pub mode: u32,
+    pub user: OsString,
+    pub group: OsString,
+    pub size: u64,
+    pub modified: chrono::DateTime<chrono::Local>,
+}
+
+impl SysNode {
+    pub fn from(entry: &DirEntry) -> Self {
+        let name = entry.file_name();
+        let typ = NodeType::Dir;
+        let mut mode = 0;
+        let user = OsString::from("");
+        let group = OsString::from("");
+        let mut size:u64=0;
+        let modified: chrono::DateTime<chrono::Local>=SystemTime::now().into();
+
+        if let Ok(md) = entry.metadata(){
+            mode=md.mode();
+            size=md.len();
+        }
+
+        Self {
+            name,
+            typ,
+            mode,
+            user,
+            group,
+            size,
+            modified,
+        }
+    }
+
+    pub fn new(name: &OsStr, typ: NodeType) -> Self {
+        Self {
+            name: name.to_os_string(),
+            typ,
+            mode: 0,
+            user: OsString::from(""),
+            group: OsString::from(""),
+            size: 0,
+            modified:SystemTime::now().into(),
+        }
     }
 }
+
 
 fn print_dir() -> std::io::Result<()> {
     // Ścieżka katalogu

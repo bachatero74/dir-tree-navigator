@@ -22,38 +22,6 @@ use tree::*;
 fn run(screen: &Screen) -> Result<PathBuf, AppError> {
     let tree = Rc::new(RefCell::new(Tree::new()));
 
-    // {
-    //     let mut tree = tree.borrow_mut();
-    //     let mut etc = TreeNode::create(&OsString::from("etc"), NodeType::Dir);
-    //     TreeNode::append(&mut tree.root, etc.clone());
-
-    //     let mut fstab = TreeNode::create(&OsString::from("fstab"), NodeType::File);
-    //     TreeNode::append(&mut etc, fstab.clone());
-
-    //     let mut mtab = TreeNode::create(&OsString::from("mtab"), NodeType::File);
-    //     TreeNode::append(&mut etc, mtab.clone());
-
-    //     let mut mnt = TreeNode::create(&OsString::from("mnt"), NodeType::Dir);
-    //     TreeNode::append(&mut tree.root, mnt.clone());
-
-    //     let mut cdrom = TreeNode::create(&OsString::from("cdrom"), NodeType::File);
-    //     TreeNode::append(&mut mnt, cdrom.clone());
-
-    //     let mut wd = TreeNode::create(&OsString::from("wd"), NodeType::File);
-    //     TreeNode::append(&mut mnt, wd.clone());
-
-    //     //tree.tmv_subdir();
-    //     //tree.lmv_next();
-
-    //     // Uwaga:
-    //     // let xr = Rc::new(RefCell::new(X { v: 58 }));
-    //     // let x:&mut X = &mut xr.borrow_mut(); wtedy możnaby się obejść bez fn go_to_path
-    //     // i zrobić to w jednej linijce bez błędów z pożyczkami
-    //     if let Err(err) = tree.go_to_path(&PathBuf::from("/etc")) {
-    //         eprintln!("{}", err);
-    //     }
-    // }
-
     let tree_view = Rc::new(RefCell::new(TreeView::new(tree.clone())));
     let list_view = Rc::new(RefCell::new(ListView::new(tree.clone())));
 

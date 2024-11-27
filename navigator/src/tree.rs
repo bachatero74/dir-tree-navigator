@@ -6,7 +6,7 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use crate::{common::*, filesystem::to_sys_node};
+use crate::{common::*, filesystem::*};
 
 use crate::graph::list_view::ListView;
 use crate::graph::tree_view::TreeView;
@@ -33,18 +33,6 @@ impl TreeNode {
         }))
     }
 
-    // pub fn create(name: &OsStr, typ: NodeType) -> TreeNodeRef {
-    //     Rc::new(RefCell::new(Self {
-    //         sys_node: SysNode {
-    //             name: name.to_os_string(),
-    //             typ,
-    //         },
-    //         subnodes: Vec::new(),
-    //         parent: Weak::new(),
-    //         loaded: false,
-    //     }))
-    // }
-
     pub fn append(this: &mut TreeNodeRef, subn: TreeNodeRef) {
         subn.borrow_mut().parent = Rc::downgrade(this);
         this.borrow_mut().subnodes.push(subn);
@@ -66,7 +54,8 @@ impl TreeNode {
     pub fn load(&mut self) -> Result<(), AppError> {
         if !self.loaded {
             self.subnodes.clear();
-            let mut nodes = fs::read_dir(self.get_path())?.map(|res| res.map(|e| SysNode::from(&e)));
+            let mut nodes =
+                fs::read_dir(self.get_path())?.map(|res| res.map(|e| SysNode::from(&e)));
             for on in nodes {
                 if let Ok(n) = on {
                     self.subnodes.push(TreeNode::from(n));
