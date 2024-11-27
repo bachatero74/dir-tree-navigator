@@ -7,7 +7,7 @@ use ncurses::*;
 #[derive(Default)]
 pub struct DisplInfo {
     pub lines_count: i32,
-    pub curs_line: i32, // TODO: optional?
+    pub curs_line: i32, // TODO: optional usize?
     pub curs_x1: i32,
     pub curs_x2: i32,
 }

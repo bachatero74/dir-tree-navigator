@@ -45,12 +45,16 @@ impl TreeView {
         self.list_node(root, 0);
     }
 
+    // TODO: to ma zwracać Option(i32 lub usize) i tegoż typu ma być DisplInfo::curs_line
+    // a w ogóle to wywalić tą funkcję bo zbyt prosta
     fn find_cursor(&self) -> i32 {
         let cd = self.tree.borrow().curr_dir();
-        for (i, line) in self.lines.iter().enumerate() {
-            if Rc::ptr_eq(&line.src_node, &cd) {
-                return i as i32;
-            }
+        if let Some(idx) = self
+            .lines
+            .iter()
+            .position(|vl| Rc::ptr_eq(&vl.src_node, &cd))
+        {
+            return idx as i32;
         }
         -1
     }

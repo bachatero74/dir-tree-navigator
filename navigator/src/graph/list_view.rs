@@ -34,12 +34,16 @@ impl ListView {
         }
     }
 
+    // TODO: to ma zwracać Option(i32 lub usize) i tegoż typu ma być DisplInfo::curs_line
+    // a w ogóle to wywalić tą funkcję bo zbyt prosta
     fn find_cursor(&self) -> i32 {
         if let Some(cf) = self.tree.borrow().curr_file() {
-            for (i, line) in self.lines.iter().enumerate() {
-                if Rc::ptr_eq(&line.src_node, &cf) {
-                    return i as i32;
-                }
+            if let Some(idx) = self
+                .lines
+                .iter()
+                .position(|vl| Rc::ptr_eq(&vl.src_node, &cf))
+            {
+                return idx as i32;
             }
         }
         -1
