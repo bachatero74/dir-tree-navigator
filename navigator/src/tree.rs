@@ -24,7 +24,7 @@ pub struct TreeNode {
 }
 
 impl TreeNode {
-    pub fn new(sys_node: SysNode) -> TreeNodeRef {
+    pub fn from(sys_node: SysNode) -> TreeNodeRef {
         Rc::new(RefCell::new(Self {
             sys_node,
             subnodes: Vec::new(),
@@ -33,17 +33,17 @@ impl TreeNode {
         }))
     }
 
-    pub fn create(name: &OsStr, typ: NodeType) -> TreeNodeRef {
-        Rc::new(RefCell::new(Self {
-            sys_node: SysNode {
-                name: name.to_os_string(),
-                typ,
-            },
-            subnodes: Vec::new(),
-            parent: Weak::new(),
-            loaded: false,
-        }))
-    }
+    // pub fn create(name: &OsStr, typ: NodeType) -> TreeNodeRef {
+    //     Rc::new(RefCell::new(Self {
+    //         sys_node: SysNode {
+    //             name: name.to_os_string(),
+    //             typ,
+    //         },
+    //         subnodes: Vec::new(),
+    //         parent: Weak::new(),
+    //         loaded: false,
+    //     }))
+    // }
 
     pub fn append(this: &mut TreeNodeRef, subn: TreeNodeRef) {
         subn.borrow_mut().parent = Rc::downgrade(this);
@@ -66,10 +66,10 @@ impl TreeNode {
     pub fn load(&mut self) -> Result<(), AppError> {
         if !self.loaded {
             self.subnodes.clear();
-            let mut nodes = fs::read_dir(self.get_path())?.map(|res| res.map(|e| to_sys_node(&e)));
+            let mut nodes = fs::read_dir(self.get_path())?.map(|res| res.map(|e| SysNode::from(&e)));
             for on in nodes {
                 if let Ok(n) = on {
-                    self.subnodes.push(TreeNode::new(n));
+                    self.subnodes.push(TreeNode::from(n));
                 }
             }
             self.loaded = true;
@@ -116,7 +116,7 @@ pub struct Tree {
 
 impl Tree {
     pub fn new() -> Tree {
-        let root = TreeNode::create(&OsString::from("/"), NodeType::Dir);
+        let root = TreeNode::from(SysNode::new(&OsString::from("/"), NodeType::Dir));
         root.borrow_mut().load();
         Tree {
             tree_view: Weak::new(),

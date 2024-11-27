@@ -1,4 +1,4 @@
-use std::ffi::OsString;
+use std::{ffi::{OsStr, OsString}, fs::{DirEntry, Permissions}};
 
 use thiserror;
 
@@ -36,4 +36,18 @@ pub enum NodeType {
 pub struct SysNode {
     pub name: OsString,
     pub typ: NodeType,
+    //pub permissions:Permissions,
+}
+
+impl SysNode {
+    pub fn from(entry: &DirEntry) -> Self {
+        let name=entry.file_name();
+        let typ=NodeType::Dir;
+
+        Self { name, typ, }
+    }
+
+    pub fn new(name: &OsStr, typ: NodeType) -> Self {
+        Self { name: name.to_os_string(), typ, }
+    }
 }
