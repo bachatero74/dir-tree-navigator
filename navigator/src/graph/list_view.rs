@@ -77,6 +77,4 @@ impl DisplContent for ListView {
     fn process_key(&mut self, key: i32) -> Result<(), AppError> {
         Ok(())
     }
-    
-
 }

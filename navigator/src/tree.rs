@@ -68,7 +68,9 @@ impl TreeNode {
     }
 
     pub fn load(&mut self) {
-        self.loaded = true;
+        if !self.loaded {
+            self.loaded = true;
+        }
     }
 
     pub fn unload(&mut self) {
@@ -150,28 +152,46 @@ impl Tree {
         }
     }
 
-    pub fn tmv_next(&mut self) -> Result<ModifFlags, AppError> {
+    pub fn tv_move_next(&mut self, tv: &mut TreeView) {
         if let Some(n) = &self.cursor.node {
             if self.cursor.tpos < n.borrow().subnodes.len() - 1 {
+                self.curr_dir().borrow_mut().unload();
                 self.cursor.tpos += 1;
                 self.cursor.lpos = 0;
+                self.curr_dir().borrow_mut().load();
 
                 if let Some(lv) = self.list_view.upgrade() {
                     lv.borrow_mut().modif_flags.render = true;
                     lv.borrow_mut().modif_flags.print = true;
                 }
 
-                return Ok(ModifFlags {
-                    render: false,
-                    print: true,
-                });
+                tv.modif_flags.print = true;
             }
         }
-        Ok(ModifFlags {
-            render: false,
-            print: false,
-        })
     }
+
+    // pub fn tmv_next(&mut self) -> Result<ModifFlags, AppError> {
+    //     if let Some(n) = &self.cursor.node {
+    //         if self.cursor.tpos < n.borrow().subnodes.len() - 1 {
+    //             self.cursor.tpos += 1;
+    //             self.cursor.lpos = 0;
+
+    //             if let Some(lv) = self.list_view.upgrade() {
+    //                 lv.borrow_mut().modif_flags.render = true;
+    //                 lv.borrow_mut().modif_flags.print = true;
+    //             }
+
+    //             return Ok(ModifFlags {
+    //                 render: false,
+    //                 print: true,
+    //             });
+    //         }
+    //     }
+    //     Ok(ModifFlags {
+    //         render: false,
+    //         print: false,
+    //     })
+    // }
 
     pub fn tmv_subdir(&mut self) {
         let cd: TreeNodeRef = self.curr_dir();

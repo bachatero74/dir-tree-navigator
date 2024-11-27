@@ -49,7 +49,7 @@ fn run(screen: &Screen) -> Result<PathBuf, AppError> {
         // let xr = Rc::new(RefCell::new(X { v: 58 }));
         // let x:&mut X = &mut xr.borrow_mut(); wtedy możnaby się obejść bez fn go_to_path
         // i zrobić to w jednej linijce bez błędów z pożyczkami
-        if let Err(err) = tree.go_to_path(&PathBuf::from("/mnt")) {
+        if let Err(err) = tree.go_to_path(&PathBuf::from("/etc")) {
             eprintln!("{}", err);
         }
     }
