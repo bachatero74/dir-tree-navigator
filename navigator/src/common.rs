@@ -1,3 +1,5 @@
+use std::ffi::OsString;
+
 use thiserror;
 
 #[derive(thiserror::Error, Debug)]
@@ -22,4 +24,16 @@ impl Size {
     pub fn new(width: i32, height: i32) -> Size {
         Size { width, height }
     }
+}
+
+#[derive(PartialEq)]
+pub enum NodeType {
+    File,
+    Dir,
+    UpDir,
+}
+
+pub struct SysNode {
+    pub name: OsString,
+    pub typ: NodeType,
 }

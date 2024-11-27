@@ -1,7 +1,16 @@
-use std::fs;
+use std::fs::{self, read_dir, DirEntry};
 use std::os::unix::fs::MetadataExt;
 use std::time::{SystemTime, UNIX_EPOCH};
 use users::{get_group_by_gid, get_user_by_uid};
+
+use crate::common::*;
+
+pub fn to_sys_node(e: &DirEntry) -> SysNode {
+    SysNode {
+        name: e.file_name().to_owned(),
+        typ: NodeType::Dir,
+    }
+}
 
 fn print_dir() -> std::io::Result<()> {
     // Ścieżka katalogu

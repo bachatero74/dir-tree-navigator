@@ -1,25 +1,15 @@
 use std::{
     cell::RefCell,
     ffi::{OsStr, OsString},
-    ops::Index,
+    fs::{self},
     path::{Component, Components, Path, PathBuf},
     rc::{Rc, Weak},
 };
 
-use crate::common::AppError;
+use crate::{common::*, filesystem::to_sys_node};
+
 use crate::graph::list_view::ListView;
 use crate::graph::tree_view::TreeView;
-
-#[derive(PartialEq)]
-pub enum NodeType {
-    File,
-    Dir,
-    UpDir,
-}
-pub struct SysNode {
-    pub name: OsString,
-    pub typ: NodeType,
-}
 
 pub type TreeNodeRef = Rc<RefCell<TreeNode>>;
 pub type TreeNodeWeak = Weak<RefCell<TreeNode>>;
@@ -60,17 +50,31 @@ impl TreeNode {
         this.borrow_mut().subnodes.push(subn);
     }
 
-    pub fn fill_path(&self, p: &mut PathBuf) {
+    fn fill_path(&self, p: &mut PathBuf) {
         if let Some(parent) = self.parent.upgrade() {
             parent.borrow().fill_path(p);
         }
         p.push(&self.sys_node.name);
     }
 
-    pub fn load(&mut self) {
+    pub fn get_path(&self) -> PathBuf {
+        let mut path = PathBuf::new();
+        self.fill_path(&mut path);
+        path
+    }
+
+    pub fn load(&mut self) -> Result<(), AppError> {
         if !self.loaded {
+            self.subnodes.clear();
+            let mut nodes = fs::read_dir(self.get_path())?.map(|res| res.map(|e| to_sys_node(&e)));
+            for on in nodes {
+                if let Ok(n) = on {
+                    self.subnodes.push(TreeNode::new(n));
+                }
+            }
             self.loaded = true;
         }
+        Ok(())
     }
 
     pub fn unload(&mut self) {
@@ -113,6 +117,7 @@ pub struct Tree {
 impl Tree {
     pub fn new() -> Tree {
         let root = TreeNode::create(&OsString::from("/"), NodeType::Dir);
+        root.borrow_mut().load();
         Tree {
             tree_view: Weak::new(),
             list_view: Weak::new(),
@@ -152,13 +157,13 @@ impl Tree {
         }
     }
 
-    pub fn tv_move_next(&mut self, tv: &mut TreeView) {
+    pub fn tv_move_next(&mut self, tv: &mut TreeView) -> Result<(), AppError> {
         if let Some(n) = &self.cursor.node {
             if self.cursor.tpos < n.borrow().subnodes.len() - 1 {
                 self.curr_dir().borrow_mut().unload();
                 self.cursor.tpos += 1;
                 self.cursor.lpos = 0;
-                self.curr_dir().borrow_mut().load();
+                self.curr_dir().borrow_mut().load()?;
 
                 if let Some(lv) = self.list_view.upgrade() {
                     lv.borrow_mut().modif_flags.render = true;
@@ -168,30 +173,8 @@ impl Tree {
                 tv.modif_flags.print = true;
             }
         }
+        Ok(())
     }
-
-    // pub fn tmv_next(&mut self) -> Result<ModifFlags, AppError> {
-    //     if let Some(n) = &self.cursor.node {
-    //         if self.cursor.tpos < n.borrow().subnodes.len() - 1 {
-    //             self.cursor.tpos += 1;
-    //             self.cursor.lpos = 0;
-
-    //             if let Some(lv) = self.list_view.upgrade() {
-    //                 lv.borrow_mut().modif_flags.render = true;
-    //                 lv.borrow_mut().modif_flags.print = true;
-    //             }
-
-    //             return Ok(ModifFlags {
-    //                 render: false,
-    //                 print: true,
-    //             });
-    //         }
-    //     }
-    //     Ok(ModifFlags {
-    //         render: false,
-    //         print: false,
-    //     })
-    // }
 
     pub fn tmv_subdir(&mut self) {
         let cd: TreeNodeRef = self.curr_dir();
@@ -223,9 +206,7 @@ impl Tree {
     }
 
     pub fn curr_path(&self) -> PathBuf {
-        let mut path = PathBuf::new();
-        self.curr_dir().borrow().fill_path(&mut path);
-        path
+        self.curr_dir().borrow().get_path()
     }
 
     pub fn go_to_path(&mut self, path: &Path) -> Result<(), AppError> {
@@ -278,7 +259,7 @@ impl Tree {
     }
 
     fn inner_find(this_node: &TreeNodeRef, it: &mut Components) -> Result<TreeNodeRef, AppError> {
-        this_node.borrow_mut().load();
+        this_node.borrow_mut().load()?;
         let oc = it.next();
         if let Some(c) = oc {
             match this_node
