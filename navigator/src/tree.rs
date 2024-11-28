@@ -66,12 +66,12 @@ impl TreeNode {
         Ok(())
     }
 
-    pub fn is_child_of(child: &TreeNodeRef, parent: &TreeNodeRef)->bool{
+    pub fn is_child_of(parent: &TreeNodeRef, child: &TreeNodeRef, )->bool{
         if let Some(p) = child.borrow().parent.upgrade(){
             if Rc::ptr_eq(&p, parent) {
                 return true;
             }
-            return TreeNode::is_child_of(child, &p);
+            return TreeNode::is_child_of(&p, child);
         }
         else {
             return false;
@@ -160,20 +160,20 @@ impl Tree {
 
     // tak będzie
     pub fn tv_goto(&mut self, node: &TreeNodeRef, tv: &mut TreeView) -> Result<(), AppError> {
-        //self.curr_dir().borrow_mut().unload();
         let old_cd = self.curr_dir();
         self.goto(node)?;
-        TreeNode::load(node); // <---------------------------------------- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        if !TreeNode::is_child_of(&old_cd, node){
+            old_cd.borrow_mut().unload();
+        }
+
+        TreeNode::load(node); // <--------------------------------------- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
         if let Some(lv) = self.list_view.upgrade() {
             lv.borrow_mut().modif_flags.render = true;
             lv.borrow_mut().modif_flags.print = true;
         }
-
         tv.modif_flags.print = true;
-        let new_cd = self.curr_dir();
-        if !TreeNode::is_child_of(&new_cd, &old_cd){
-            old_cd.borrow_mut().unload();
-        }
         Ok(())
     }
 
