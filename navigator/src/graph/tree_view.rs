@@ -77,8 +77,16 @@ impl DisplContent for TreeView {
         }
         info.lines_count = self.lines.len() as i32;
         info.curs_line = self.find_cursor();
-        info.curs_x1 = 0;
-        info.curs_x2 = 0;
+        match self.lines.get(info.curs_line as usize) {
+            Some(ln)=>{
+                info.curs_x1 = ln.x1;
+                info.curs_x2 = ln.x2;
+            },
+            None=>{
+                info.curs_x1 = 0;
+                info.curs_x2 = 0;
+            },
+        } 
         Ok(())
     }
 
@@ -91,10 +99,6 @@ impl DisplContent for TreeView {
 
     fn process_key(&mut self, key: i32) -> Result<(), AppError> {
         match key {
-            // KEY_DOWN => {
-            //     let tree = self.tree.clone();
-            //     tree.borrow_mut().tv_move_next(self);
-            // }
             KEY_UP => {
                 let curs_y = self.find_cursor();
                 if curs_y >= 0 {
