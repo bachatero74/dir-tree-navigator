@@ -30,9 +30,9 @@ impl TreeView {
         }
         let name_as_str = n.sys_node.name.to_string_lossy().to_string();
         self.lines.push(ViewLine::new(
-            &format!("{}{}", "--".repeat(level), &name_as_str),
-            (2 * level) as i32,
-            (2 * level + name_as_str.chars().count()) as i32,
+            &format!("{}{}", "-".repeat(level), &name_as_str),
+            (1 * level) as i32,
+            (1 * level + name_as_str.chars().count()) as i32,
             &node,
         ));
         for sn in &n.subnodes {

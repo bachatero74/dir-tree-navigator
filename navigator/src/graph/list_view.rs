@@ -2,6 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use super::display::*;
 use crate::common::*;
+use crate::filesystem::*;
 use crate::tree::*;
 
 pub struct ListView {
@@ -24,11 +25,23 @@ impl ListView {
         let cd = self.tree.borrow().curr_dir();
         for node in &cd.borrow().subnodes {
             let n = node.borrow();
-            let name_as_str = n.sys_node.name.to_string_lossy().to_string();
+            //let name_as_str = n.sys_node.name.to_string_lossy().to_string();
+
+            let line_str = format!(
+                "{}{} {:>8} {:>8} {:>10} {} {}",
+                file_type_to_str(&n.sys_node.typ),
+                permissions_to_str(n.sys_node.mode),
+                n.sys_node.user.to_string_lossy().to_string(),
+                n.sys_node.group.to_string_lossy().to_string(),
+                n.sys_node.size,
+                datetime_to_str(n.sys_node.modified),
+                n.sys_node.name.to_string_lossy().to_string()
+            );
+
             self.lines.push(ViewLine::new(
-                &name_as_str,
-                0,
-                name_as_str.chars().count() as i32,
+                &line_str,
+                53,
+                line_str.chars().count() as i32,
                 &node,
             ));
         }
