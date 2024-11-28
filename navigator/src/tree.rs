@@ -33,7 +33,7 @@ impl TreeNode {
         }))
     }
 
-    pub fn append(this: &mut TreeNodeRef, subn: TreeNodeRef) {
+    pub fn append(this: &TreeNodeRef, subn: TreeNodeRef) {
         subn.borrow_mut().parent = Rc::downgrade(this);
         this.borrow_mut().subnodes.push(subn);
     }
@@ -51,20 +51,35 @@ impl TreeNode {
         path
     }
 
-    pub fn load(&mut self) -> Result<(), AppError> {
-        if !self.loaded {
-            self.subnodes.clear();
+    pub fn load2(this: &TreeNodeRef) -> Result<(), AppError> {
+        if !this.borrow().loaded {
+            this.borrow_mut().subnodes.clear();
             let mut nodes =
-                fs::read_dir(self.get_path())?.map(|res| res.map(|e| SysNode::from(&e)));
+                fs::read_dir(this.borrow().get_path())?.map(|res| res.map(|e| SysNode::from(&e)));
             for on in nodes {
                 if let Ok(n) = on {
-                    self.subnodes.push(TreeNode::from(n));
+                    TreeNode::append(this, TreeNode::from(n));
                 }
             }
-            self.loaded = true;
+            this.borrow_mut().loaded = true;
         }
         Ok(())
     }
+
+    // pub fn load(&mut self) -> Result<(), AppError> {
+    //     if !self.loaded {
+    //         self.subnodes.clear();
+    //         let mut nodes =
+    //             fs::read_dir(self.get_path())?.map(|res| res.map(|e| SysNode::from(&e)));
+    //         for on in nodes {
+    //             if let Ok(n) = on {
+    //                 self.subnodes.push(TreeNode::from(n));
+    //             }
+    //         }
+    //         self.loaded = true;
+    //     }
+    //     Ok(())
+    // }
 
     pub fn unload(&mut self) {
         self.subnodes.clear();
@@ -106,7 +121,7 @@ pub struct Tree {
 impl Tree {
     pub fn new() -> Tree {
         let root = TreeNode::from(SysNode::new(&OsString::from("/"), NodeType::Dir));
-        root.borrow_mut().load();
+        TreeNode::load2(&root);
         Tree {
             tree_view: Weak::new(),
             list_view: Weak::new(),
@@ -152,7 +167,7 @@ impl Tree {
                 self.curr_dir().borrow_mut().unload();
                 self.cursor.tpos += 1;
                 self.cursor.lpos = 0;
-                self.curr_dir().borrow_mut().load()?;
+                //self.curr_dir().borrow_mut().load()?;
 
                 if let Some(lv) = self.list_view.upgrade() {
                     lv.borrow_mut().modif_flags.render = true;
@@ -248,7 +263,8 @@ impl Tree {
     }
 
     fn inner_find(this_node: &TreeNodeRef, it: &mut Components) -> Result<TreeNodeRef, AppError> {
-        this_node.borrow_mut().load()?;
+        //this_node.borrow_mut().load()?;
+        TreeNode::load2(this_node);
         let oc = it.next();
         if let Some(c) = oc {
             match this_node
