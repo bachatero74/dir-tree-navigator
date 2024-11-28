@@ -174,25 +174,6 @@ impl Tree {
         Ok(())
     }
 
-    pub fn tv_move_next(&mut self, tv: &mut TreeView) -> Result<(), AppError> {
-        if let Some(n) = &self.cursor.node {
-            if self.cursor.tpos < n.borrow().subnodes.len() - 1 {
-                self.curr_dir().borrow_mut().unload();
-                self.cursor.tpos += 1;
-                self.cursor.lpos = 0;
-                //self.curr_dir().borrow_mut().load()?;
-
-                if let Some(lv) = self.list_view.upgrade() {
-                    lv.borrow_mut().modif_flags.render = true;
-                    lv.borrow_mut().modif_flags.print = true;
-                }
-
-                tv.modif_flags.print = true;
-            }
-        }
-        Ok(())
-    }
-
     pub fn tmv_subdir(&mut self) {
         let cd: TreeNodeRef = self.curr_dir();
         if cd.borrow().subnodes.len() > 0 {
