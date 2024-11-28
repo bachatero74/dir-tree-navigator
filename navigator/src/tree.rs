@@ -66,21 +66,6 @@ impl TreeNode {
         Ok(())
     }
 
-    // pub fn load(&mut self) -> Result<(), AppError> {
-    //     if !self.loaded {
-    //         self.subnodes.clear();
-    //         let mut nodes =
-    //             fs::read_dir(self.get_path())?.map(|res| res.map(|e| SysNode::from(&e)));
-    //         for on in nodes {
-    //             if let Ok(n) = on {
-    //                 self.subnodes.push(TreeNode::from(n));
-    //             }
-    //         }
-    //         self.loaded = true;
-    //     }
-    //     Ok(())
-    // }
-
     pub fn unload(&mut self) {
         self.subnodes.clear();
         self.loaded = false;
@@ -163,6 +148,7 @@ impl Tree {
 
     // tak będzie
     pub fn tv_goto(&mut self, node: &TreeNodeRef, tv: &mut TreeView) -> Result<(), AppError> {
+        //self.curr_dir().borrow_mut().unload();
         self.goto(node)?;
         TreeNode::load(node); // <---------------------------------------- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if let Some(lv) = self.list_view.upgrade() {
@@ -214,8 +200,7 @@ impl Tree {
     pub fn goto(&mut self, node: &TreeNodeRef) -> Result<(), AppError> {
         match node.borrow().parent.upgrade() {
             Some(parent) => {
-                if let Some(idx) = parent
-                    .borrow()
+                if let Some(idx) = parent.borrow()
                     .subnodes
                     .iter()
                     .position(|n| Rc::ptr_eq(n, &node))
