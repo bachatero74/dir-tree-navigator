@@ -51,7 +51,7 @@ impl TreeNode {
         path
     }
 
-    pub fn load2(this: &TreeNodeRef) -> Result<(), AppError> {
+    pub fn load(this: &TreeNodeRef) -> Result<(), AppError> {
         if !this.borrow().loaded {
             this.borrow_mut().subnodes.clear();
             let mut nodes =
@@ -121,7 +121,7 @@ pub struct Tree {
 impl Tree {
     pub fn new() -> Tree {
         let root = TreeNode::from(SysNode::new(&OsString::from("/"), NodeType::Dir));
-        TreeNode::load2(&root);
+        TreeNode::load(&root);
         Tree {
             tree_view: Weak::new(),
             list_view: Weak::new(),
@@ -159,6 +159,19 @@ impl Tree {
         if self.cursor.lpos < cd.borrow().subnodes.len() - 1 {
             self.cursor.lpos += 1;
         }
+    }
+
+    // tak będzie
+    pub fn tv_goto(&mut self, node: &TreeNodeRef, tv: &mut TreeView) -> Result<(), AppError> {
+        self.goto(node)?;
+        TreeNode::load(node); // <---------------------------------------- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        if let Some(lv) = self.list_view.upgrade() {
+            lv.borrow_mut().modif_flags.render = true;
+            lv.borrow_mut().modif_flags.print = true;
+        }
+
+        tv.modif_flags.print = true;
+        Ok(())
     }
 
     pub fn tv_move_next(&mut self, tv: &mut TreeView) -> Result<(), AppError> {
@@ -246,7 +259,7 @@ impl Tree {
         let mut it = path.components();
         let oc: Option<Component> = it.next();
         match oc {
-            // some component exists
+            // some component exist
             Some(c) => match c {
                 std::path::Component::RootDir => return Tree::inner_find(&self.root, &mut it),
                 _ => {
@@ -263,8 +276,7 @@ impl Tree {
     }
 
     fn inner_find(this_node: &TreeNodeRef, it: &mut Components) -> Result<TreeNodeRef, AppError> {
-        //this_node.borrow_mut().load()?;
-        TreeNode::load2(this_node);
+        TreeNode::load(this_node)?;
         let oc = it.next();
         if let Some(c) = oc {
             match this_node

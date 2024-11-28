@@ -91,10 +91,29 @@ impl DisplContent for TreeView {
 
     fn process_key(&mut self, key: i32) -> Result<(), AppError> {
         match key {
-            //KEY_DOWN => self.modif_flags = self.tree.borrow_mut().tmv_next()?,
+            // KEY_DOWN => {
+            //     let tree = self.tree.clone();
+            //     tree.borrow_mut().tv_move_next(self);
+            // }
+            KEY_UP => {
+                let curs_y = self.find_cursor();
+                if curs_y >= 0 {
+                    if let Some(line) = self.lines.get((curs_y - 1) as usize) {
+                        let tree = self.tree.clone();
+                        let dest = line.src_node.clone();
+                        tree.borrow_mut().tv_goto(&dest, self)?;
+                    }
+                }
+            }
             KEY_DOWN => {
-                let tree = self.tree.clone();
-                tree.borrow_mut().tv_move_next(self);
+                let curs_y = self.find_cursor();
+                if curs_y >= 0 {
+                    if let Some(line) = self.lines.get((curs_y + 1) as usize) {
+                        let tree = self.tree.clone();
+                        let dest = line.src_node.clone();
+                        tree.borrow_mut().tv_goto(&dest, self)?;
+                    }
+                }
             }
             _ => {}
         };
