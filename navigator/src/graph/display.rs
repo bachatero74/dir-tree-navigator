@@ -120,13 +120,14 @@ impl Display {
         let typ = &vline.src_node.borrow().sys_node.typ;
         let mut attributor = Attributor::new(self.window, container_active, typ);
         wmove(self.window, y, x);
-        for (i, ch) in vline.content.chars().enumerate() {
-            if i < offs as usize {
-                continue;
-            }
-            if i - (offs as usize) >= self.size.width as usize {
-                break;
-            }
+
+        for (i, ch) in vline
+            .content
+            .chars()
+            .enumerate()
+            .skip(offs as usize)
+            .take(self.size.width as usize)
+        {
             if cursor {
                 if i >= vline.x2 as usize {
                     attributor.sel_off();
