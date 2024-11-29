@@ -21,9 +21,6 @@ impl Screen {
         curs_set(CURSOR_VISIBILITY::CURSOR_INVISIBLE);
         keypad(stdscr(), true);
 
-        init_pair(1, COLOR_WHITE, -1);
-        init_pair(3, COLOR_BLUE, -1);
-
         refresh();
 
         let mut scr_height: i32 = 0;

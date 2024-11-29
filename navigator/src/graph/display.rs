@@ -117,7 +117,7 @@ impl Display {
         cursor: bool,
         container_active: bool,
     ) {
-        let typ=&vline.src_node.borrow().sys_node.typ;
+        let typ = &vline.src_node.borrow().sys_node.typ;
         let attributor = Attributor::new(self.window, container_active, typ);
         wmove(self.window, y, x);
         for (i, ch) in vline.content.chars().enumerate() {
@@ -152,8 +152,7 @@ pub struct Attributor {
 }
 
 impl Attributor {
-    fn new(window: WINDOW, container_active: bool, node_type:&NodeType) -> Self {
-        //wattr_on(window, COLOR_PAIR(color_pair));
+    fn new(window: WINDOW, container_active: bool, node_type: &NodeType) -> Self {
         Self {
             window,
             container_active,
@@ -171,17 +170,24 @@ impl Attributor {
         wattr_off(self.window, A_REVERSE);
     }
 
-    pub fn init_color_pairs(){
-        
+    pub fn init_color_pairs() {
+        let p = Attributor::get_color_pairs(&NodeType::File);
+        init_pair(p.0, COLOR_WHITE, -1);
+        init_pair(p.1, COLOR_WHITE, COLOR_CYAN);
+
+        let p = Attributor::get_color_pairs(&NodeType::Dir);
+        init_pair(p.0, COLOR_BLUE, -1);
+        init_pair(p.1, COLOR_BLUE, COLOR_CYAN);
     }
 
-    fn get_color_pairs(node_type:&NodeType)->(i16,i16){
-        (1,2)
+    fn get_color_pairs(node_type: &NodeType) -> (i16, i16) {
+        match node_type {
+            NodeType::Dir => (3, 4),
+            _ => (1, 2),
+        }
     }
 }
 
 impl Drop for Attributor {
-    fn drop(&mut self) {
-   
-    }
+    fn drop(&mut self) {}
 }
