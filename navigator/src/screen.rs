@@ -14,10 +14,15 @@ pub struct Screen {
 impl Screen {
     pub fn create() -> Screen {
         initscr();
+        start_color();
+        use_default_colors();
         cbreak();
         noecho();
         curs_set(CURSOR_VISIBILITY::CURSOR_INVISIBLE);
         keypad(stdscr(), true);
+
+        init_pair(1, COLOR_WHITE, -1);
+        init_pair(3, COLOR_BLUE, -1);
 
         refresh();
 

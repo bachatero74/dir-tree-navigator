@@ -59,8 +59,8 @@ fn run(screen: &Screen) -> Result<PathBuf, AppError> {
                 left_displ.clone()
             };
             focused_displ.borrow_mut().active = true;
-            tree_view.borrow_mut().modif_flags.print=true;
-            list_view.borrow_mut().modif_flags.print=true;
+            tree_view.borrow_mut().modif_flags.print = true;
+            list_view.borrow_mut().modif_flags.print = true;
             continue;
         }
 
