@@ -150,12 +150,12 @@ impl Tree {
         result
     }
 
-    pub fn lmv_next(&mut self) {
-        let cd = self.curr_dir();
-        if self.cursor.lpos < cd.borrow().subnodes.len() - 1 {
-            self.cursor.lpos += 1;
-        }
-    }
+    // pub fn lmv_next(&mut self) {
+    //     let cd = self.curr_dir();
+    //     if self.cursor.lpos < cd.borrow().subnodes.len() - 1 {
+    //         self.cursor.lpos += 1;
+    //     }
+    // }
 
     // tak będzie
     pub fn tv_goto(&mut self, node: &TreeNodeRef, tv: &mut TreeView) -> Result<(), AppError> {
@@ -176,34 +176,40 @@ impl Tree {
         Ok(())
     }
 
-    pub fn tmv_subdir(&mut self) {
-        let cd: TreeNodeRef = self.curr_dir();
-        if cd.borrow().subnodes.len() > 0 {
-            self.cursor.node = Some(cd);
-            self.cursor.tpos = 0;
-            self.cursor.lpos = 0;
-        }
+    pub fn lv_goto(&mut self, node: &TreeNodeRef, lv: &mut ListView) -> Result<(), AppError> {
+        self.move_to_list_node(node)?;
+        lv.modif_flags.print = true;
+        Ok(())
     }
 
-    pub fn tmv_updir(&mut self) {
-        if let Some(n) = &self.cursor.node {
-            let nc: Cursor;
-            if let Some(p) = n.borrow().parent.upgrade() {
-                nc = Cursor {
-                    node: Some(p.clone()),
-                    tpos: 0,
-                    lpos: 0,
-                };
-            } else {
-                nc = Cursor {
-                    node: None,
-                    tpos: 0,
-                    lpos: 0,
-                };
-            }
-            self.cursor = nc;
-        }
-    }
+    // pub fn tmv_subdir(&mut self) {
+    //     let cd: TreeNodeRef = self.curr_dir();
+    //     if cd.borrow().subnodes.len() > 0 {
+    //         self.cursor.node = Some(cd);
+    //         self.cursor.tpos = 0;
+    //         self.cursor.lpos = 0;
+    //     }
+    // }
+
+    // pub fn tmv_updir(&mut self) {
+    //     if let Some(n) = &self.cursor.node {
+    //         let nc: Cursor;
+    //         if let Some(p) = n.borrow().parent.upgrade() {
+    //             nc = Cursor {
+    //                 node: Some(p.clone()),
+    //                 tpos: 0,
+    //                 lpos: 0,
+    //             };
+    //         } else {
+    //             nc = Cursor {
+    //                 node: None,
+    //                 tpos: 0,
+    //                 lpos: 0,
+    //             };
+    //         }
+    //         self.cursor = nc;
+    //     }
+    // }
 
     pub fn curr_path(&self) -> PathBuf {
         self.curr_dir().borrow().get_path()
@@ -220,7 +226,7 @@ impl Tree {
                     .borrow()
                     .subnodes
                     .iter()
-                    .position(|n| Rc::ptr_eq(n, &node))
+                    .position(|n| Rc::ptr_eq(n, node))
                 {
                     self.cursor.tpos = idx;
                     self.cursor.lpos = 0;
@@ -234,6 +240,20 @@ impl Tree {
                 self.cursor.tpos = 0;
                 self.cursor.lpos = 0;
             }
+        }
+        Ok(())
+    }
+
+    pub fn move_to_list_node(&mut self, node: &TreeNodeRef) -> Result<(), AppError> {
+        let cd = self.curr_dir();
+        if let Some(idx) = cd
+            .borrow()
+            .subnodes
+            .iter()
+            .position(|n| Rc::ptr_eq(n, node))
+        {
+            self.cursor.lpos = idx;
+        } else {
         }
         Ok(())
     }

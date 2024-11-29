@@ -5,6 +5,9 @@ use crate::common::*;
 use crate::filesystem::*;
 use crate::tree::*;
 
+use ncurses::KEY_DOWN;
+use ncurses::KEY_UP;
+
 pub struct ListView {
     tree: Rc<RefCell<Tree>>,
     lines: Vec<ViewLine>,
@@ -100,6 +103,29 @@ impl DisplContent for ListView {
     }
 
     fn process_key(&mut self, key: i32) -> Result<(), AppError> {
+        match key {
+            KEY_UP => {
+                let curs_y = self.find_cursor();
+                if curs_y >= 0 {
+                    if let Some(line) = self.lines.get((curs_y - 1) as usize) {
+                        let tree = self.tree.clone();
+                        let dest = line.src_node.clone();
+                        tree.borrow_mut().lv_goto(&dest, self)?;
+                    }
+                }
+            }
+            KEY_DOWN => {
+                let curs_y = self.find_cursor();
+                if curs_y >= 0 {
+                    if let Some(line) = self.lines.get((curs_y + 1) as usize) {
+                        let tree = self.tree.clone();
+                        let dest = line.src_node.clone();
+                        tree.borrow_mut().lv_goto(&dest, self)?;
+                    }
+                }
+            }
+            _ => {}
+        };
         Ok(())
     }
 }
