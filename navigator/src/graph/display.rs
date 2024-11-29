@@ -44,7 +44,7 @@ pub struct Display {
     size: Size,
     //offset_x: i32,
     offset_y: i32,
-    active: bool,
+    pub active: bool,
 }
 
 impl Display {

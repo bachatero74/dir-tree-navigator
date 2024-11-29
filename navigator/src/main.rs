@@ -29,17 +29,18 @@ fn run(screen: &Screen) -> Result<PathBuf, AppError> {
     tree.borrow_mut().list_view = Rc::downgrade(&list_view);
 
     let left_displ = Rc::new(RefCell::new(Display::new(
-        tree_view,
+        tree_view.clone(),
         &screen.tree_win,
         &screen.tw_size,
     )));
     let right_displ = Rc::new(RefCell::new(Display::new(
-        list_view,
+        list_view.clone(),
         &screen.list_win,
         &screen.lw_size,
     )));
 
     let mut focused_displ = left_displ.clone();
+    focused_displ.borrow_mut().active = true;
     loop {
         left_displ.borrow_mut().display()?;
         right_displ.borrow_mut().display()?;
@@ -50,8 +51,20 @@ fn run(screen: &Screen) -> Result<PathBuf, AppError> {
             break;
         }
 
+        if ch == '\t' as i32 {
+            focused_displ.borrow_mut().active = false;
+            focused_displ = if Rc::ptr_eq(&focused_displ, &left_displ) {
+                right_displ.clone()
+            } else {
+                left_displ.clone()
+            };
+            focused_displ.borrow_mut().active = true;
+            tree_view.borrow_mut().modif_flags.print=true;
+            list_view.borrow_mut().modif_flags.print=true;
+            continue;
+        }
+
         focused_displ.borrow().process_key(ch)?;
-        assert!(Rc::ptr_eq(&focused_displ, &left_displ))
     }
     let x = Ok(tree.borrow().curr_path());
     x
