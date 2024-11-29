@@ -4,14 +4,15 @@ use std::os::unix::fs::MetadataExt;
 use std::time::{SystemTime, UNIX_EPOCH};
 use users::{get_group_by_gid, get_user_by_uid};
 
+
 #[derive(PartialEq)]
+#[derive(Clone)]
 pub enum NodeType {
     File,
     Dir,
     SymLink,
     UpDir,
 }
-
 pub struct SysNode {
     pub name: OsString,
     pub typ: NodeType,

@@ -3,6 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use crate::common::*;
 use crate::filesystem::NodeType;
 use crate::tree::TreeNodeRef;
+
 use ncurses::*;
 
 #[derive(Default)]
@@ -116,12 +117,8 @@ impl Display {
         cursor: bool,
         container_active: bool,
     ) {
-        let color_pair = if vline.src_node.borrow().sys_node.typ == NodeType::Dir {
-            3
-        } else {
-            1
-        };
-        let attributor = Attributor::new(self.window, container_active, color_pair);
+        let typ=&vline.src_node.borrow().sys_node.typ;
+        let attributor = Attributor::new(self.window, container_active, typ);
         wmove(self.window, y, x);
         for (i, ch) in vline.content.chars().enumerate() {
             if i < offs as usize {
@@ -148,19 +145,19 @@ fn fit_str(x1: i32, x2: i32, width: i32) -> i32 {
 
 // -----------------------------------------------------------------------
 
-struct Attributor {
+pub struct Attributor {
     window: WINDOW,
     container_active: bool,
-    color_pair: i16,
+    pairs: (i16, i16),
 }
 
 impl Attributor {
-    fn new(window: WINDOW, container_active: bool, color_pair: i16) -> Self {
-        wattr_on(window, COLOR_PAIR(color_pair));
+    fn new(window: WINDOW, container_active: bool, node_type:&NodeType) -> Self {
+        //wattr_on(window, COLOR_PAIR(color_pair));
         Self {
             window,
             container_active,
-            color_pair,
+            pairs: Attributor::get_color_pairs(node_type),
         }
     }
 
@@ -173,11 +170,18 @@ impl Attributor {
     fn sel_off(&self) {
         wattr_off(self.window, A_REVERSE);
     }
+
+    pub fn init_color_pairs(){
+        
+    }
+
+    fn get_color_pairs(node_type:&NodeType)->(i16,i16){
+        (1,2)
+    }
 }
 
 impl Drop for Attributor {
     fn drop(&mut self) {
-        wattr_off(self.window, A_REVERSE);
-        wattr_off(self.window, COLOR_PAIR(self.color_pair));
+   
     }
 }
