@@ -80,15 +80,15 @@ impl DisplContent for ListView {
         info.lines_count = self.lines.len() as i32;
         info.curs_line = self.find_cursor();
         match self.lines.get(info.curs_line as usize) {
-            Some(ln)=>{
+            Some(ln) => {
                 info.curs_x1 = ln.x1;
                 info.curs_x2 = ln.x2;
-            },
-            None=>{
+            }
+            None => {
                 info.curs_x1 = 0;
                 info.curs_x2 = 0;
-            },
-        } 
+            }
+        }
         Ok(())
     }
 

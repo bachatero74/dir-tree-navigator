@@ -66,18 +66,17 @@ impl TreeNode {
         Ok(())
     }
 
-    pub fn is_child_of(parent: &TreeNodeRef, child: &TreeNodeRef, )->bool{
-        if let Some(p) = child.borrow().parent.upgrade(){
+    pub fn is_child_of(parent: &TreeNodeRef, child: &TreeNodeRef) -> bool {
+        if let Some(p) = child.borrow().parent.upgrade() {
             if Rc::ptr_eq(&p, parent) {
                 return true;
             }
             return TreeNode::is_child_of(&p, child);
-        }
-        else {
+        } else {
             return false;
         }
     }
-    
+
     pub fn unload(&mut self) {
         self.subnodes.clear();
         self.loaded = false;
@@ -163,11 +162,11 @@ impl Tree {
         let old_cd = self.curr_dir();
         self.goto(node)?;
 
-        if !TreeNode::is_child_of(&old_cd, node){
+        if !TreeNode::is_child_of(&old_cd, node) {
             old_cd.borrow_mut().unload();
         }
 
-        TreeNode::load(node); // <--------------------------------------- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+        TreeNode::load(node); // <--------------------------------------- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         if let Some(lv) = self.list_view.upgrade() {
             lv.borrow_mut().modif_flags.render = true;
@@ -217,7 +216,8 @@ impl Tree {
     pub fn goto(&mut self, node: &TreeNodeRef) -> Result<(), AppError> {
         match node.borrow().parent.upgrade() {
             Some(parent) => {
-                if let Some(idx) = parent.borrow()
+                if let Some(idx) = parent
+                    .borrow()
                     .subnodes
                     .iter()
                     .position(|n| Rc::ptr_eq(n, &node))

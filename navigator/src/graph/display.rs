@@ -44,6 +44,7 @@ pub struct Display {
     size: Size,
     //offset_x: i32,
     offset_y: i32,
+    active: bool,
 }
 
 impl Display {
@@ -54,6 +55,7 @@ impl Display {
             size: *size,
             //offset_x: 0,
             offset_y: 0,
+            active: false,
         }
     }
 
@@ -91,6 +93,7 @@ impl Display {
                 view_line,
                 offset_x,
                 info.curs_line >= 0 && (y + self.offset_y == info.curs_line),
+                self.active,
             );
         }
 
@@ -103,8 +106,16 @@ impl Display {
         self.content.borrow_mut().process_key(key)
     }
 
-    fn print_line(&self, y: i32, x: i32, vline: &ViewLine, offs: i32, cursor: bool) {
-        wattr_off(self.window, A_REVERSE);
+    fn print_line(
+        &self,
+        y: i32,
+        x: i32,
+        vline: &ViewLine,
+        offs: i32,
+        cursor: bool,
+        container_active: bool,
+    ) {
+        let attributor = Attributor::new(self.window, container_active);
         wmove(self.window, y, x);
         for (i, ch) in vline.content.chars().enumerate() {
             if i < offs as usize {
@@ -115,17 +126,48 @@ impl Display {
             }
             if cursor {
                 if i >= vline.x2 as usize {
-                    wattr_off(self.window, A_REVERSE);
+                    attributor.sel_off();
                 } else if i >= vline.x1 as usize {
-                    wattr_on(self.window, A_REVERSE);
+                    attributor.sel_on();
                 }
             }
             waddch(self.window, ch as u32);
         }
-        wattr_off(self.window, A_REVERSE);
     }
 }
 
 fn fit_str(x1: i32, x2: i32, width: i32) -> i32 {
     (x2 - width).clamp(0, x1)
+}
+
+// -----------------------------------------------------------------------
+
+struct Attributor {
+    window: WINDOW,
+    container_active: bool,
+}
+
+impl Attributor {
+    fn new(window: WINDOW, container_active: bool) -> Self {
+        Self {
+            window,
+            container_active,
+        }
+    }
+
+    fn sel_on(&self) {
+        if self.container_active {
+            wattr_on(self.window, A_REVERSE);
+        }
+    }
+
+    fn sel_off(&self) {
+        wattr_off(self.window, A_REVERSE);
+    }
+}
+
+impl Drop for Attributor {
+    fn drop(&mut self) {
+        wattr_off(self.window, A_REVERSE);
+    }
 }
