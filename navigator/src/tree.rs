@@ -178,6 +178,10 @@ impl Tree {
 
     pub fn lv_goto(&mut self, node: &TreeNodeRef, lv: &mut ListView) -> Result<(), AppError> {
         self.move_to_list_node(node)?;
+        // if let Some(tv) = self.tree_view.upgrade() {
+        //     tv.borrow_mut().modif_flags.render = false;
+        //     tv.borrow_mut().modif_flags.print = false;
+        // }
         lv.modif_flags.print = true;
         Ok(())
     }
