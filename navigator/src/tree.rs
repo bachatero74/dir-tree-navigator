@@ -182,34 +182,7 @@ impl Tree {
         Ok(())
     }
 
-    // pub fn tmv_subdir(&mut self) {
-    //     let cd: TreeNodeRef = self.curr_dir();
-    //     if cd.borrow().subnodes.len() > 0 {
-    //         self.cursor.node = Some(cd);
-    //         self.cursor.tpos = 0;
-    //         self.cursor.lpos = 0;
-    //     }
-    // }
-
-    // pub fn tmv_updir(&mut self) {
-    //     if let Some(n) = &self.cursor.node {
-    //         let nc: Cursor;
-    //         if let Some(p) = n.borrow().parent.upgrade() {
-    //             nc = Cursor {
-    //                 node: Some(p.clone()),
-    //                 tpos: 0,
-    //                 lpos: 0,
-    //             };
-    //         } else {
-    //             nc = Cursor {
-    //                 node: None,
-    //                 tpos: 0,
-    //                 lpos: 0,
-    //             };
-    //         }
-    //         self.cursor = nc;
-    //     }
-    // }
+  
 
     pub fn curr_path(&self) -> PathBuf {
         self.curr_dir().borrow().get_path()

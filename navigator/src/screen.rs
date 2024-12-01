@@ -33,7 +33,7 @@ impl Screen {
 
         // Tree
         let left_pane = newwin(scr_height, l_width, 0, 0);
-        box_(left_pane, 0, 0);
+        wborder(left_pane, 0, 0, 0, 0, 0,  ACS_TTEE(),0, ACS_BTEE());
         wrefresh(left_pane);
 
         let tree_win: WINDOW = newwin(scr_height - 2, l_width - 2, 1, 1);
