@@ -41,10 +41,10 @@ impl Screen {
 
         // List
         let right_pane = newwin(scr_height, r_width, 0, l_width);
-        box_(right_pane, 0, 0);
+        wborder(right_pane, 0, 0, 0, 0, ACS_HLINE(), 0, ACS_HLINE(), 0);
         wrefresh(right_pane);
 
-        let list_win: WINDOW = newwin(scr_height - 2, r_width - 2, 1, l_width + 1);
+        let list_win: WINDOW = newwin(scr_height - 2, r_width - 1, 1, l_width);
         wrefresh(list_win);
 
         Screen {
