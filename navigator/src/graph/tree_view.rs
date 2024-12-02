@@ -1,6 +1,8 @@
 use std::{cell::RefCell, rc::Rc};
 
 use ncurses::KEY_DOWN;
+use ncurses::KEY_LEFT;
+use ncurses::KEY_RIGHT;
 use ncurses::KEY_UP;
 
 use super::display::*;
@@ -35,8 +37,10 @@ impl TreeView {
             (1 * level + name_as_str.chars().count()) as i32,
             &node,
         ));
-        for sn in &n.subnodes {
-            self.list_node(sn, level + 1);
+        if n.expanded {
+            for sn in &n.subnodes {
+                self.list_node(sn, level + 1);
+            }
         }
     }
 
@@ -118,6 +122,14 @@ impl DisplContent for TreeView {
                         tree.borrow_mut().tv_goto(&dest, self)?;
                     }
                 }
+            }
+            KEY_RIGHT => {
+                let mut tree = self.tree.clone();
+                tree.borrow_mut().tv_expand(true, self);
+            }
+            KEY_LEFT => {
+                let mut tree = self.tree.clone();
+                tree.borrow_mut().tv_expand(false, self);
             }
             _ => {}
         };

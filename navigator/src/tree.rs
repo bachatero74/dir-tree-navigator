@@ -21,6 +21,7 @@ pub struct TreeNode {
     pub subnodes: Vec<TreeNodeRef>,
     pub parent: TreeNodeWeak,
     pub loaded: bool,
+    pub expanded: bool,
 }
 
 impl TreeNode {
@@ -30,6 +31,7 @@ impl TreeNode {
             subnodes: Vec::new(),
             parent: Weak::new(),
             loaded: false,
+            expanded: false,
         }))
     }
 
@@ -117,6 +119,7 @@ pub struct Tree {
 impl Tree {
     pub fn new() -> Tree {
         let root = TreeNode::from(SysNode::new(&OsString::from("/"), NodeType::Dir));
+        root.borrow_mut().expanded=true;
         TreeNode::load(&root);
         Tree {
             tree_view: Weak::new(),
@@ -157,7 +160,6 @@ impl Tree {
     //     }
     // }
 
-    // tak będzie
     pub fn tv_goto(&mut self, node: &TreeNodeRef, tv: &mut TreeView) -> Result<(), AppError> {
         let old_cd = self.curr_dir();
         self.goto(node)?;
@@ -176,6 +178,24 @@ impl Tree {
         Ok(())
     }
 
+    pub fn tv_expand(&mut self, b: bool, tv: &mut TreeView) {
+        let cd = self.curr_dir();
+        let mut rcd = cd.borrow_mut();
+        if b {
+            if !rcd.expanded {
+                rcd.expanded = true;
+                tv.modif_flags.render = true;
+                tv.modif_flags.print = true;
+            }
+        } else {
+            if rcd.expanded {
+                rcd.expanded = false;
+                tv.modif_flags.render = true;
+                tv.modif_flags.print = true;
+            }
+        }
+    }
+
     pub fn lv_goto(&mut self, node: &TreeNodeRef, lv: &mut ListView) -> Result<(), AppError> {
         self.move_to_list_node(node)?;
         // if let Some(tv) = self.tree_view.upgrade() {
@@ -185,8 +205,6 @@ impl Tree {
         lv.modif_flags.print = true;
         Ok(())
     }
-
-  
 
     pub fn curr_path(&self) -> PathBuf {
         self.curr_dir().borrow().get_path()

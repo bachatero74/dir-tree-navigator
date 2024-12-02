@@ -28,7 +28,6 @@ impl ListView {
         let cd = self.tree.borrow().curr_dir();
         for node in &cd.borrow().subnodes {
             let n = node.borrow();
-            //let name_as_str = n.sys_node.name.to_string_lossy().to_string();
 
             let line_str = format!(
                 "{}{} {:>8} {:>8} {:>10} {} {}",

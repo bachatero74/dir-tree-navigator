@@ -44,7 +44,7 @@ fn run(screen: &Screen) -> Result<PathBuf, AppError> {
     loop {
         left_displ.borrow_mut().display()?;
         right_displ.borrow_mut().display()?;
-        
+
         let ch: i32 = getch();
 
         if ch == KEY_F(10) || ch == 27 {
