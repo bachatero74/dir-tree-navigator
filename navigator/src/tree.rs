@@ -176,6 +176,13 @@ impl Tree {
             old_cd.borrow_mut().expanded = false;
             tv.modif_flags.render = true;
         }
+        if let Some(pp) = old_cd.borrow().parent.upgrade() {
+            if !TreeNode::is_child_of(&pp, node) && !Rc::ptr_eq(&pp, node) {
+                pp.borrow_mut().unload();
+                pp.borrow_mut().expanded = false;
+                tv.modif_flags.render = true;
+            }
+        }
 
         TreeNode::load(node); // <--------------------------------------- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
