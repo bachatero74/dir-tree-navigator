@@ -68,6 +68,7 @@ impl TreeNode {
         Ok(())
     }
 
+    // TODO: coś tu nie działa (razem ze shrink)
     pub fn is_child_of(parent: &TreeNodeRef, child: &TreeNodeRef) -> bool {
         if let Some(p) = child.borrow().parent.upgrade() {
             if Rc::ptr_eq(&p, parent) {
@@ -82,6 +83,14 @@ impl TreeNode {
     pub fn unload(&mut self) {
         self.subnodes.clear();
         self.loaded = false;
+    }
+
+    pub fn expand(this: &mut TreeNodeRef) {
+        if let Some(parent) = this.borrow().parent.upgrade() {
+            let mut p = parent.clone();
+            TreeNode::expand(&mut p);
+        }
+        this.borrow_mut().expanded = true;
     }
 }
 
@@ -119,7 +128,7 @@ pub struct Tree {
 impl Tree {
     pub fn new() -> Tree {
         let root = TreeNode::from(SysNode::new(&OsString::from("/"), NodeType::Dir));
-        root.borrow_mut().expanded=true;
+        root.borrow_mut().expanded = true;
         TreeNode::load(&root);
         Tree {
             tree_view: Weak::new(),
@@ -166,6 +175,8 @@ impl Tree {
 
         if !TreeNode::is_child_of(&old_cd, node) {
             old_cd.borrow_mut().unload();
+            old_cd.borrow_mut().expanded = false;
+            tv.modif_flags.render = true;
         }
 
         TreeNode::load(node); // <--------------------------------------- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -211,7 +222,9 @@ impl Tree {
     }
 
     pub fn go_to_path(&mut self, path: &Path) -> Result<(), AppError> {
-        self.goto(&self.find(path)?)
+        let mut node = self.find(path)?;
+        TreeNode::expand(&mut node);
+        self.goto(&node)
     }
 
     pub fn goto(&mut self, node: &TreeNodeRef) -> Result<(), AppError> {

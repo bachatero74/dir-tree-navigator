@@ -31,10 +31,11 @@ impl TreeView {
             return;
         }
         let name_as_str = n.sys_node.name.to_string_lossy().to_string();
+        let exp_stat = if node.borrow().expanded { "-" } else { "+" };
         self.lines.push(ViewLine::new(
-            &format!("{}{}", "-".repeat(level), &name_as_str),
-            (1 * level) as i32,
-            (1 * level + name_as_str.chars().count()) as i32,
+            &format!("{}{}{}", " ".repeat(level), exp_stat, &name_as_str),
+            (1 * level + 1) as i32,
+            (1 * level + 1 + name_as_str.chars().count()) as i32,
             &node,
         ));
         if n.expanded {
@@ -124,11 +125,11 @@ impl DisplContent for TreeView {
                 }
             }
             KEY_RIGHT => {
-                let mut tree = self.tree.clone();
+                let tree = self.tree.clone();
                 tree.borrow_mut().tv_expand(true, self);
             }
             KEY_LEFT => {
-                let mut tree = self.tree.clone();
+                let tree = self.tree.clone();
                 tree.borrow_mut().tv_expand(false, self);
             }
             _ => {}

@@ -8,8 +8,8 @@ mod graph {
     pub mod tree_view;
 }
 
-use std::ffi::OsString;
-use std::path::{Path, PathBuf};
+use std::env;
+use std::path::PathBuf;
 use std::process::ExitCode;
 use std::{cell::RefCell, rc::Rc};
 
@@ -21,6 +21,15 @@ use tree::*;
 
 fn run(screen: &Screen) -> Result<PathBuf, AppError> {
     let tree = Rc::new(RefCell::new(Tree::new()));
+
+    let args: Vec<String> = env::args().collect();
+    if let Some(path) = args.get(1) {
+        tree.borrow_mut().go_to_path(&PathBuf::from(path));
+    } else {
+        if let Ok(path) = env::current_dir() {
+            tree.borrow_mut().go_to_path(&path);
+        }
+    }
 
     let tree_view = Rc::new(RefCell::new(TreeView::new(tree.clone())));
     let list_view = Rc::new(RefCell::new(ListView::new(tree.clone())));
