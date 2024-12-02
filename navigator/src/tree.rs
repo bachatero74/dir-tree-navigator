@@ -56,7 +56,7 @@ impl TreeNode {
     pub fn load(this: &TreeNodeRef) -> Result<(), AppError> {
         if !this.borrow().loaded {
             this.borrow_mut().subnodes.clear();
-            let mut nodes =
+            let nodes =
                 fs::read_dir(this.borrow().get_path())?.map(|res| res.map(|e| SysNode::from(&e)));
             for on in nodes {
                 if let Ok(n) = on {
@@ -219,6 +219,24 @@ impl Tree {
         //     tv.borrow_mut().modif_flags.print = false;
         // }
         lv.modif_flags.print = true;
+        Ok(())
+    }
+
+    pub fn lv_enter(&mut self, lv: &mut ListView) -> Result<(), AppError> {
+        if let Some(file) = self.curr_file() {
+            if file.borrow().sys_node.typ == NodeType::Dir {
+                let cd = self.curr_dir();
+                cd.borrow_mut().expanded=true;
+                self.goto(&file)?;
+                TreeNode::load(&file);
+                if let Some(tv) = self.tree_view.upgrade() {
+                    tv.borrow_mut().modif_flags.render = true;
+                    tv.borrow_mut().modif_flags.print = true;
+                }
+                lv.modif_flags.render = true;
+                lv.modif_flags.print = true;
+            }
+        }
         Ok(())
     }
 
