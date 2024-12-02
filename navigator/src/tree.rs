@@ -74,6 +74,7 @@ impl TreeNode {
             if Rc::ptr_eq(&p, parent) {
                 return true;
             }
+            //return false;
             return TreeNode::is_child_of(&p, child);
         } else {
             return false;
