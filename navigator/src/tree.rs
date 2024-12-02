@@ -68,17 +68,14 @@ impl TreeNode {
         Ok(())
     }
 
-    // TODO: coś tu nie działa (razem ze shrink)
     pub fn is_child_of(parent: &TreeNodeRef, child: &TreeNodeRef) -> bool {
         if let Some(p) = child.borrow().parent.upgrade() {
             if Rc::ptr_eq(&p, parent) {
                 return true;
             }
-            //return false;
-            return TreeNode::is_child_of(&p, child);
-        } else {
-            return false;
+            return TreeNode::is_child_of(parent, &p);
         }
+        return false;
     }
 
     pub fn unload(&mut self) {
