@@ -61,7 +61,7 @@ impl Display {
         }
     }
 
-    pub fn display(&mut self) -> Result<(), AppError> {
+    pub fn display(&mut self, center: bool) -> Result<(), AppError> {
         let mut info: DisplInfo = Default::default();
         if !self.content.borrow().modified() {
             return Ok(());
@@ -69,12 +69,19 @@ impl Display {
         self.content.borrow_mut().prepare(&mut info)?;
 
         if info.curs_line >= 0 {
-            if info.curs_line - self.offset_y > self.size.height - 1 {
-                self.offset_y = info.curs_line - self.size.height + 1;
-            }
+            if (!center) {
+                if info.curs_line - self.offset_y > self.size.height - 1 {
+                    self.offset_y = info.curs_line - self.size.height + 1;
+                }
 
-            if info.curs_line - self.offset_y < 0 {
-                self.offset_y = info.curs_line;
+                if info.curs_line - self.offset_y < 0 {
+                    self.offset_y = info.curs_line;
+                }
+            } else {
+                self.offset_y = info.curs_line - self.size.height / 2;
+                if self.offset_y < 0 {
+                    self.offset_y = 0;
+                }
             }
         }
 

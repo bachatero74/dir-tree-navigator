@@ -50,9 +50,10 @@ fn run(screen: &Screen) -> Result<PathBuf, AppError> {
 
     let mut focused_displ = left_displ.clone();
     focused_displ.borrow_mut().active = true;
+    left_displ.borrow_mut().display(true)?;
     loop {
-        left_displ.borrow_mut().display()?;
-        right_displ.borrow_mut().display()?;
+        left_displ.borrow_mut().display(false)?;
+        right_displ.borrow_mut().display(false)?;
 
         let ch: i32 = getch();
 

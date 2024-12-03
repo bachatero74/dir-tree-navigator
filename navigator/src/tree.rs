@@ -160,13 +160,6 @@ impl Tree {
         result
     }
 
-    // pub fn lmv_next(&mut self) {
-    //     let cd = self.curr_dir();
-    //     if self.cursor.lpos < cd.borrow().subnodes.len() - 1 {
-    //         self.cursor.lpos += 1;
-    //     }
-    // }
-
     pub fn tv_goto(&mut self, node: &TreeNodeRef, tv: &mut TreeView) -> Result<(), AppError> {
         let old_cd = self.curr_dir();
         self.goto(node)?;
@@ -208,6 +201,18 @@ impl Tree {
                 rcd.expanded = false;
                 tv.modif_flags.render = true;
                 tv.modif_flags.print = true;
+            } else {
+                if let Some(parent) = rcd.parent.upgrade() {
+                    rcd.unload();
+                    self.goto(&parent);
+                    parent.borrow_mut().expanded = false;
+                    tv.modif_flags.render = true;
+                    tv.modif_flags.print = true;
+                    if let Some(lv) = self.list_view.upgrade() {
+                        lv.borrow_mut().modif_flags.render = true;
+                        lv.borrow_mut().modif_flags.print = true;
+                    }
+                }
             }
         }
     }
@@ -226,7 +231,7 @@ impl Tree {
         if let Some(file) = self.curr_file() {
             if file.borrow().sys_node.typ == NodeType::Dir {
                 let cd = self.curr_dir();
-                cd.borrow_mut().expanded=true;
+                cd.borrow_mut().expanded = true;
                 self.goto(&file)?;
                 TreeNode::load(&file);
                 if let Some(tv) = self.tree_view.upgrade() {
