@@ -51,9 +51,9 @@ impl TreeNode {
         let mut unloaded = false;
         let mut dest_branch: Vec<TreeNodeRef> = Vec::new();
         TreeNode::get_branch(next_node, &mut dest_branch);
-        // TreeNode::inner_try_unload(this_node, &dest_branch, &mut unloaded);
-        // unloaded
-        false
+        TreeNode::inner_try_unload(this_node, &dest_branch, &mut unloaded);
+        unloaded
+        //false
     }
 
     fn inner_try_unload(

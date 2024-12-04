@@ -99,7 +99,8 @@ impl Tree {
 
     pub fn tv_move_up(&mut self, tv: &mut TreeView) -> Result<(), AppError> {
         let cd = self.curr_dir();
-        if let Some(parent) = cd.borrow().parent.upgrade() {
+        let parent = cd.borrow().parent.upgrade();
+        if let Some(parent) = parent {
             // TreeNode::try_unload(&cd, &parent);
             // self.goto(&parent)?;
             let ul = self.move_from_to(&cd, &parent)?;
@@ -113,25 +114,26 @@ impl Tree {
         Ok(())
     }
 
-    pub fn tv_expand(&mut self, b: bool, tv: &mut TreeView) -> Result<(), AppError>  {
+    pub fn tv_expand(&mut self, b: bool, tv: &mut TreeView) -> Result<(), AppError> {
         let cd = self.curr_dir();
-        let mut rcd = cd.borrow_mut();
+        //let mut rcd = cd.borrow_mut();
         if b {
             // expand
-            if !rcd.expanded {
-                rcd.expanded = true;
+            if !cd.borrow().expanded {
+                cd.borrow_mut().expanded = true;
                 tv.modif_flags.render = true;
                 tv.modif_flags.print = true;
             }
         } else {
             // collapse
-            if rcd.expanded {
-                rcd.expanded = false;
+            if cd.borrow().expanded {
+                cd.borrow_mut().expanded = false;
                 tv.modif_flags.render = true;
                 tv.modif_flags.print = true;
             } else {
                 // already collapsed
-                if let Some(parent) = rcd.parent.upgrade() {
+                let parent = cd.borrow().parent.upgrade();
+                if let Some(parent) = parent {
                     // TreeNode::try_unload(&cd, &parent);
                     // self.goto(&parent);
                     let ul = self.move_from_to(&cd, &parent)?;
