@@ -46,6 +46,7 @@ pub struct Display {
     size: Size,
     //offset_x: i32,
     offset_y: i32,
+    margin_y: i32,
     pub active: bool,
 }
 
@@ -57,6 +58,7 @@ impl Display {
             size: *size,
             //offset_x: 0,
             offset_y: 0,
+            margin_y: 3,
             active: false,
         }
     }
@@ -70,20 +72,22 @@ impl Display {
 
         if info.curs_line >= 0 {
             if (!center) {
-                if info.curs_line - self.offset_y > self.size.height - 1 {
-                    self.offset_y = info.curs_line - self.size.height + 1;
+                if info.curs_line - self.offset_y > self.size.height - 1 - self.margin_y {
+                    self.offset_y = info.curs_line - self.size.height + 1 + self.margin_y;
                 }
-
-                if info.curs_line - self.offset_y < 0 {
-                    self.offset_y = info.curs_line;
+                if info.curs_line - self.offset_y < self.margin_y {
+                    self.offset_y = info.curs_line - self.margin_y;
                 }
             } else {
                 self.offset_y = info.curs_line - self.size.height / 2;
-                if self.offset_y < 0 {
-                    self.offset_y = 0;
-                }
             }
         }
+
+        let mut mx = info.lines_count - self.size.height;
+        if mx < 0 {
+            mx = 0;
+        }
+        self.offset_y = self.offset_y.clamp(0, mx);
 
         let offset_x = fit_str(info.curs_x1, info.curs_x2, self.size.width);
 
