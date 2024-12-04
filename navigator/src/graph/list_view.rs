@@ -5,8 +5,7 @@ use crate::common::*;
 use crate::filesystem::*;
 use crate::tree::*;
 
-use ncurses::KEY_DOWN;
-use ncurses::KEY_UP;
+use ncurses::*;
 
 pub struct ListView {
     tree: Rc<RefCell<Tree>>,
@@ -123,9 +122,13 @@ impl DisplContent for ListView {
                     }
                 }
             }
-            10 => {
+            10  => {
                 let tree = self.tree.clone();
                 tree.borrow_mut().lv_enter(self)?;
+            }
+            KEY_BACKSPACE => {
+                let tree = self.tree.clone();
+                tree.borrow_mut().lv_move_up(self)?;
             }
             _ => {}
         };

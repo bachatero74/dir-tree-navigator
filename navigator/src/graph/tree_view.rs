@@ -1,5 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
+use ncurses::KEY_BACKSPACE;
 use ncurses::KEY_DOWN;
 use ncurses::KEY_LEFT;
 use ncurses::KEY_RIGHT;
@@ -131,6 +132,10 @@ impl DisplContent for TreeView {
             KEY_LEFT => {
                 let tree = self.tree.clone();
                 tree.borrow_mut().tv_expand(false, self);
+            }
+            KEY_BACKSPACE => {
+                let tree = self.tree.clone();
+                tree.borrow_mut().tv_move_up(self)?;
             }
             _ => {}
         };

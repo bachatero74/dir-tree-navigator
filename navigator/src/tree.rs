@@ -164,19 +164,6 @@ impl Tree {
         let old_cd = self.curr_dir();
         self.goto(node)?;
 
-        if !TreeNode::is_child_of(&old_cd, node) {
-            old_cd.borrow_mut().unload();
-            old_cd.borrow_mut().expanded = false;
-            tv.modif_flags.render = true;
-        }
-        if let Some(pp) = old_cd.borrow().parent.upgrade() {
-            if !TreeNode::is_child_of(&pp, node) && !Rc::ptr_eq(&pp, node) {
-                pp.borrow_mut().unload();
-                pp.borrow_mut().expanded = false;
-                tv.modif_flags.render = true;
-            }
-        }
-
         TreeNode::load(node); // <--------------------------------------- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         if let Some(lv) = self.list_view.upgrade() {
@@ -187,26 +174,42 @@ impl Tree {
         Ok(())
     }
 
+    pub fn tv_move_up(&mut self, tv: &mut TreeView) -> Result<(), AppError> {
+        let cd = self.curr_dir();
+        if let Some(parent) = cd.borrow().parent.upgrade() {
+            self.goto(&parent)?;
+            tv.modif_flags.print = true;
+            if let Some(lv) = self.list_view.upgrade() {
+                lv.borrow_mut().modif_flags.render = true;
+                lv.borrow_mut().modif_flags.print = true;
+            }
+        }
+        Ok(())
+    }
+
     pub fn tv_expand(&mut self, b: bool, tv: &mut TreeView) {
         let cd = self.curr_dir();
         let mut rcd = cd.borrow_mut();
         if b {
+            // expand
             if !rcd.expanded {
                 rcd.expanded = true;
                 tv.modif_flags.render = true;
                 tv.modif_flags.print = true;
             }
         } else {
+            // collapse
             if rcd.expanded {
                 rcd.expanded = false;
                 tv.modif_flags.render = true;
                 tv.modif_flags.print = true;
             } else {
+                // already collapsed
                 if let Some(parent) = rcd.parent.upgrade() {
-                    rcd.unload();
+                    //rcd.unload();
                     self.goto(&parent);
-                    parent.borrow_mut().expanded = false;
-                    tv.modif_flags.render = true;
+                    //parent.borrow_mut().expanded = false;
+                    tv.modif_flags.render = false;
                     tv.modif_flags.print = true;
                     if let Some(lv) = self.list_view.upgrade() {
                         lv.borrow_mut().modif_flags.render = true;
@@ -240,6 +243,20 @@ impl Tree {
                 }
                 lv.modif_flags.render = true;
                 lv.modif_flags.print = true;
+            }
+        }
+        Ok(())
+    }
+
+    pub fn lv_move_up(&mut self, lv: &mut ListView) -> Result<(), AppError> {
+        let cd = self.curr_dir();
+        if let Some(parent) = cd.borrow().parent.upgrade() {
+            self.goto(&parent)?;
+            lv.modif_flags.render = true;
+            lv.modif_flags.print = true;
+            if let Some(tv) = self.tree_view.upgrade() {
+                tv.borrow_mut().modif_flags.render = false;
+                tv.borrow_mut().modif_flags.print = true;
             }
         }
         Ok(())
