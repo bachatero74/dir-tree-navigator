@@ -60,8 +60,8 @@ impl Screen {
             list_win,
             status_win,
 
-            tw_size: Size::new(l_width - 2, scr_height - 2),
-            lw_size: Size::new(r_width - 2, scr_height - 2),
+            tw_size: Size::new(l_width - 2, scr_height - 3),
+            lw_size: Size::new(r_width - 2, scr_height - 3),
             sw_size: Size::new(scr_width, 1),
         }
     }
