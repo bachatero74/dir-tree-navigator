@@ -8,10 +8,10 @@ mod graph {
     pub mod tree_view;
 }
 
-use std::env;
 use std::path::PathBuf;
 use std::process::ExitCode;
 use std::{cell::RefCell, rc::Rc};
+use std::{env, iter};
 
 use common::*;
 use graph::{display::*, list_view::*, tree_view::*};
@@ -54,6 +54,7 @@ fn run(screen: &Screen) -> Result<PathBuf, AppError> {
     loop {
         left_displ.borrow_mut().display(false)?;
         right_displ.borrow_mut().display(false)?;
+        display_status(&screen, &tree.borrow());
 
         let ch: i32 = getch();
 
@@ -80,6 +81,24 @@ fn run(screen: &Screen) -> Result<PathBuf, AppError> {
     x
 }
 
+fn display_status(screen: &Screen, tree: &Tree) {
+    let win = screen.status_win;
+    werase(win);
+    wmove(win, 0, 0);
+    wattr_on(win, A_REVERSE);
+    for ch in tree
+        .curr_path()
+        .to_string_lossy()
+        .to_string()
+        .chars()
+        .chain(iter::repeat(' '))
+        .take(screen.sw_size.width as usize)
+    {
+        waddch(win, ch as u32);
+    }
+    wattr_off(win, A_REVERSE);
+    wrefresh(screen.status_win);
+}
 fn main() -> ExitCode {
     let screen = Screen::create();
     Attributor::init_color_pairs();
