@@ -164,7 +164,8 @@ impl Tree {
             if file.borrow().sys_node.typ == NodeType::Dir {
                 let cd = self.curr_dir();
                 cd.borrow_mut().expanded = true;
-                self.goto(&file)?;
+                let ul = self.move_from_to(&cd, &file)?;
+                //self.goto(&file)?;
                 TreeNode::load(&file);
                 if let Some(tv) = self.tree_view.upgrade() {
                     tv.borrow_mut().modif_flags.render = true;
@@ -179,12 +180,13 @@ impl Tree {
 
     pub fn lv_move_up(&mut self, lv: &mut ListView) -> Result<(), AppError> {
         let cd = self.curr_dir();
-        if let Some(parent) = cd.borrow().parent.upgrade() {
-            self.goto(&parent)?;
+        let parent = cd.borrow().parent.upgrade();
+        if let Some(parent) = parent {
+            let ul = self.move_from_to(&cd, &parent)?;
             lv.modif_flags.render = true;
             lv.modif_flags.print = true;
             if let Some(tv) = self.tree_view.upgrade() {
-                tv.borrow_mut().modif_flags.render = false;
+                tv.borrow_mut().modif_flags.render = ul;
                 tv.borrow_mut().modif_flags.print = true;
             }
         }
