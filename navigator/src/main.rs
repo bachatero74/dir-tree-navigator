@@ -2,6 +2,7 @@ mod common;
 mod filesystem;
 mod screen;
 mod tree;
+mod tree_node;
 mod graph {
     pub mod display;
     pub mod list_view;

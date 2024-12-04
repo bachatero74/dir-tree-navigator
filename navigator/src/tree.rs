@@ -6,112 +6,11 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use crate::{common::*, filesystem::*};
-
+use crate::{common::*, tree_node::*, filesystem::*};
 use crate::graph::list_view::ListView;
 use crate::graph::tree_view::TreeView;
 
-pub type TreeNodeRef = Rc<RefCell<TreeNode>>;
-pub type TreeNodeWeak = Weak<RefCell<TreeNode>>;
 
-// -----------------------------------------------------------------------------
-
-pub struct TreeNode {
-    pub sys_node: SysNode,
-    pub subnodes: Vec<TreeNodeRef>,
-    pub parent: TreeNodeWeak,
-    pub loaded: bool,
-    pub expanded: bool,
-}
-
-impl TreeNode {
-    pub fn from(sys_node: SysNode) -> TreeNodeRef {
-        Rc::new(RefCell::new(Self {
-            sys_node,
-            subnodes: Vec::new(),
-            parent: Weak::new(),
-            loaded: false,
-            expanded: false,
-        }))
-    }
-
-    pub fn append(this: &TreeNodeRef, subn: TreeNodeRef) {
-        subn.borrow_mut().parent = Rc::downgrade(this);
-        this.borrow_mut().subnodes.push(subn);
-    }
-
-    fn fill_path(&self, p: &mut PathBuf) {
-        if let Some(parent) = self.parent.upgrade() {
-            parent.borrow().fill_path(p);
-        }
-        p.push(&self.sys_node.name);
-    }
-
-    pub fn get_path(&self) -> PathBuf {
-        let mut path = PathBuf::new();
-        self.fill_path(&mut path);
-        path
-    }
-
-    fn try_unload(this_node: &TreeNodeRef, next_node: &TreeNodeRef) {
-        let mut dest_branch: Vec<TreeNodeRef> = Vec::new();
-        TreeNode::get_branch(next_node, &mut dest_branch);
-        TreeNode::inner_try_unload(this_node, &dest_branch);
-    }
-
-    fn inner_try_unload(this_node: &TreeNodeRef, dest_branch: &Vec<TreeNodeRef>) {
-        let on_branch = true;
-        if !on_branch{
-            let mut this_node = this_node.borrow_mut();
-            if !this_node.expanded {
-                this_node.unload();
-                if let Some(parent)=this_node.parent.upgrade(){
-                    TreeNode::inner_try_unload(&parent, dest_branch);
-                }
-            }
-        }
-    }
-
-    fn get_branch(node: &TreeNodeRef, branch: &mut Vec<TreeNodeRef>) {}
-
-    pub fn load(this: &TreeNodeRef) -> Result<(), AppError> {
-        if !this.borrow().loaded {
-            this.borrow_mut().subnodes.clear();
-            let nodes =
-                fs::read_dir(this.borrow().get_path())?.map(|res| res.map(|e| SysNode::from(&e)));
-            for on in nodes {
-                if let Ok(n) = on {
-                    TreeNode::append(this, TreeNode::from(n));
-                }
-            }
-            this.borrow_mut().loaded = true;
-        }
-        Ok(())
-    }
-
-    pub fn unload(&mut self) {
-        self.subnodes.clear();
-        self.loaded = false;
-    }
-
-    // pub fn is_child_of(parent: &TreeNodeRef, child: &TreeNodeRef) -> bool {
-    //     if let Some(p) = child.borrow().parent.upgrade() {
-    //         if Rc::ptr_eq(&p, parent) {
-    //             return true;
-    //         }
-    //         return TreeNode::is_child_of(parent, &p);
-    //     }
-    //     return false;
-    // }
-
-    pub fn expand(this: &mut TreeNodeRef) {
-        if let Some(parent) = this.borrow().parent.upgrade() {
-            let mut p = parent.clone();
-            TreeNode::expand(&mut p);
-        }
-        this.borrow_mut().expanded = true;
-    }
-}
 
 // -----------------------------------------------------------------------------
 
@@ -192,6 +91,7 @@ impl Tree {
             lv.borrow_mut().modif_flags.render = true;
             lv.borrow_mut().modif_flags.print = true;
         }
+        tv.modif_flags.render = true; // ???!!
         tv.modif_flags.print = true;
         Ok(())
     }
@@ -199,6 +99,7 @@ impl Tree {
     pub fn tv_move_up(&mut self, tv: &mut TreeView) -> Result<(), AppError> {
         let cd = self.curr_dir();
         if let Some(parent) = cd.borrow().parent.upgrade() {
+            TreeNode::try_unload(&cd, &parent);
             self.goto(&parent)?;
             tv.modif_flags.print = true;
             if let Some(lv) = self.list_view.upgrade() {
@@ -228,9 +129,8 @@ impl Tree {
             } else {
                 // already collapsed
                 if let Some(parent) = rcd.parent.upgrade() {
-                    //rcd.unload();
+                    TreeNode::try_unload(&cd, &parent);
                     self.goto(&parent);
-                    //parent.borrow_mut().expanded = false;
                     tv.modif_flags.render = false;
                     tv.modif_flags.print = true;
                     if let Some(lv) = self.list_view.upgrade() {
