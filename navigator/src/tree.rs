@@ -53,6 +53,27 @@ impl TreeNode {
         path
     }
 
+    fn try_unload(this_node: &TreeNodeRef, next_node: &TreeNodeRef) {
+        let mut dest_branch: Vec<TreeNodeRef> = Vec::new();
+        TreeNode::get_branch(next_node, &mut dest_branch);
+        TreeNode::inner_try_unload(this_node, &dest_branch);
+    }
+
+    fn inner_try_unload(this_node: &TreeNodeRef, dest_branch: &Vec<TreeNodeRef>) {
+        let on_branch = true;
+        if !on_branch{
+            let mut this_node = this_node.borrow_mut();
+            if !this_node.expanded {
+                this_node.unload();
+                if let Some(parent)=this_node.parent.upgrade(){
+                    TreeNode::inner_try_unload(&parent, dest_branch);
+                }
+            }
+        }
+    }
+
+    fn get_branch(node: &TreeNodeRef, branch: &mut Vec<TreeNodeRef>) {}
+
     pub fn load(this: &TreeNodeRef) -> Result<(), AppError> {
         if !this.borrow().loaded {
             this.borrow_mut().subnodes.clear();
@@ -68,20 +89,20 @@ impl TreeNode {
         Ok(())
     }
 
-    pub fn is_child_of(parent: &TreeNodeRef, child: &TreeNodeRef) -> bool {
-        if let Some(p) = child.borrow().parent.upgrade() {
-            if Rc::ptr_eq(&p, parent) {
-                return true;
-            }
-            return TreeNode::is_child_of(parent, &p);
-        }
-        return false;
-    }
-
     pub fn unload(&mut self) {
         self.subnodes.clear();
         self.loaded = false;
     }
+
+    // pub fn is_child_of(parent: &TreeNodeRef, child: &TreeNodeRef) -> bool {
+    //     if let Some(p) = child.borrow().parent.upgrade() {
+    //         if Rc::ptr_eq(&p, parent) {
+    //             return true;
+    //         }
+    //         return TreeNode::is_child_of(parent, &p);
+    //     }
+    //     return false;
+    // }
 
     pub fn expand(this: &mut TreeNodeRef) {
         if let Some(parent) = this.borrow().parent.upgrade() {
@@ -162,6 +183,7 @@ impl Tree {
 
     pub fn tv_goto(&mut self, node: &TreeNodeRef, tv: &mut TreeView) -> Result<(), AppError> {
         let old_cd = self.curr_dir();
+        TreeNode::try_unload(&old_cd, node);
         self.goto(node)?;
 
         TreeNode::load(node); // <--------------------------------------- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
