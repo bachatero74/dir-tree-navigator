@@ -1,18 +1,12 @@
 use std::{
     cell::RefCell,
-    ffi::{OsStr, OsString},
-    fs::{self},
+    ffi::OsString,
     path::{Component, Components, Path, PathBuf},
     rc::{Rc, Weak},
 };
 
 use crate::{common::*, tree_node::*, filesystem::*};
-use crate::graph::list_view::ListView;
-use crate::graph::tree_view::TreeView;
-
-
-
-// -----------------------------------------------------------------------------
+use crate::graph::{list_view::ListView, tree_view::TreeView};
 
 struct Cursor {
     node: Option<TreeNodeRef>,
@@ -78,6 +72,12 @@ impl Tree {
             None => None,
         };
         result
+    }
+
+    fn move_from_to(&mut self, prev:&TreeNodeRef, next:&TreeNodeRef) -> Result<(), AppError>{
+        TreeNode::try_unload(prev, next);
+        self.goto(next)?;
+        Ok(())
     }
 
     pub fn tv_goto(&mut self, node: &TreeNodeRef, tv: &mut TreeView) -> Result<(), AppError> {
