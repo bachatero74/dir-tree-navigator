@@ -1,4 +1,9 @@
-use std::{cell::RefCell, fs, path::PathBuf, rc::{Rc, Weak}};
+use std::{
+    cell::RefCell,
+    fs,
+    path::PathBuf,
+    rc::{Rc, Weak},
+};
 
 use crate::{common::*, filesystem::*};
 
@@ -42,21 +47,27 @@ impl TreeNode {
         path
     }
 
-    pub fn try_unload(this_node: &TreeNodeRef, next_node: &TreeNodeRef) {
+    pub fn try_unload(this_node: &TreeNodeRef, next_node: &TreeNodeRef) -> bool {
+        let mut unloaded = false;
         let mut dest_branch: Vec<TreeNodeRef> = Vec::new();
         TreeNode::get_branch(next_node, &mut dest_branch);
-        TreeNode::inner_try_unload(this_node, &dest_branch);
+        TreeNode::inner_try_unload(this_node, &dest_branch, &mut unloaded);
+        unloaded
     }
 
-    fn inner_try_unload(this_node: &TreeNodeRef, dest_branch: &Vec<TreeNodeRef>) {
+    fn inner_try_unload(
+        this_node: &TreeNodeRef,
+        dest_branch: &Vec<TreeNodeRef>,
+        unloaded: &mut bool,
+    ) {
         let on_branch = dest_branch.iter().any(|n| Rc::ptr_eq(n, this_node));
         if !on_branch {
             let mut this_node = this_node.borrow_mut();
             if !this_node.expanded {
-                assert!(false);
                 this_node.unload();
+                *unloaded = true;
                 if let Some(parent) = this_node.parent.upgrade() {
-                    TreeNode::inner_try_unload(&parent, dest_branch);
+                    TreeNode::inner_try_unload(&parent, dest_branch, unloaded);
                 }
             }
         }
@@ -64,7 +75,7 @@ impl TreeNode {
 
     fn get_branch(node: &TreeNodeRef, branch: &mut Vec<TreeNodeRef>) {
         branch.push(node.clone());
-        if let Some(parent) = node.borrow().parent.upgrade(){
+        if let Some(parent) = node.borrow().parent.upgrade() {
             TreeNode::get_branch(&parent, branch);
         }
     }

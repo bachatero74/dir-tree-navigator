@@ -1,8 +1,8 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::common::*;
-use crate::tree_node::*;
 use crate::filesystem::NodeType;
+use crate::tree_node::*;
 
 use ncurses::*;
 

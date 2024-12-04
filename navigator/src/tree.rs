@@ -5,8 +5,8 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use crate::{common::*, tree_node::*, filesystem::*};
 use crate::graph::{list_view::ListView, tree_view::TreeView};
+use crate::{common::*, filesystem::*, tree_node::*};
 
 struct Cursor {
     node: Option<TreeNodeRef>,
@@ -74,16 +74,17 @@ impl Tree {
         result
     }
 
-    fn move_from_to(&mut self, prev:&TreeNodeRef, next:&TreeNodeRef) -> Result<(), AppError>{
-        TreeNode::try_unload(prev, next);
+    fn move_from_to(&mut self, prev: &TreeNodeRef, next: &TreeNodeRef) -> Result<bool, AppError> {
+        let ul = TreeNode::try_unload(prev, next);
         self.goto(next)?;
-        Ok(())
+        Ok(ul)
     }
 
     pub fn tv_goto(&mut self, node: &TreeNodeRef, tv: &mut TreeView) -> Result<(), AppError> {
         let old_cd = self.curr_dir();
-        TreeNode::try_unload(&old_cd, node);
-        self.goto(node)?;
+        // TreeNode::try_unload(&old_cd, node);
+        // self.goto(node)?;
+        let ul = self.move_from_to(&old_cd, node)?;
 
         TreeNode::load(node); // <--------------------------------------- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -91,7 +92,7 @@ impl Tree {
             lv.borrow_mut().modif_flags.render = true;
             lv.borrow_mut().modif_flags.print = true;
         }
-        tv.modif_flags.render = true; // ???!!
+        tv.modif_flags.render = ul;
         tv.modif_flags.print = true;
         Ok(())
     }
@@ -99,8 +100,10 @@ impl Tree {
     pub fn tv_move_up(&mut self, tv: &mut TreeView) -> Result<(), AppError> {
         let cd = self.curr_dir();
         if let Some(parent) = cd.borrow().parent.upgrade() {
-            TreeNode::try_unload(&cd, &parent);
-            self.goto(&parent)?;
+            // TreeNode::try_unload(&cd, &parent);
+            // self.goto(&parent)?;
+            let ul = self.move_from_to(&cd, &parent)?;
+            tv.modif_flags.render = ul;
             tv.modif_flags.print = true;
             if let Some(lv) = self.list_view.upgrade() {
                 lv.borrow_mut().modif_flags.render = true;
@@ -110,7 +113,7 @@ impl Tree {
         Ok(())
     }
 
-    pub fn tv_expand(&mut self, b: bool, tv: &mut TreeView) {
+    pub fn tv_expand(&mut self, b: bool, tv: &mut TreeView) -> Result<(), AppError>  {
         let cd = self.curr_dir();
         let mut rcd = cd.borrow_mut();
         if b {
@@ -129,9 +132,10 @@ impl Tree {
             } else {
                 // already collapsed
                 if let Some(parent) = rcd.parent.upgrade() {
-                    TreeNode::try_unload(&cd, &parent);
-                    self.goto(&parent);
-                    tv.modif_flags.render = false;
+                    // TreeNode::try_unload(&cd, &parent);
+                    // self.goto(&parent);
+                    let ul = self.move_from_to(&cd, &parent)?;
+                    tv.modif_flags.render = ul;
                     tv.modif_flags.print = true;
                     if let Some(lv) = self.list_view.upgrade() {
                         lv.borrow_mut().modif_flags.render = true;
@@ -140,6 +144,7 @@ impl Tree {
                 }
             }
         }
+        Ok(())
     }
 
     pub fn lv_goto(&mut self, node: &TreeNodeRef, lv: &mut ListView) -> Result<(), AppError> {
