@@ -1,5 +1,6 @@
 use std::{
     cell::RefCell,
+    cmp::Ordering,
     fs,
     path::PathBuf,
     rc::{Rc, Weak},
@@ -84,21 +85,30 @@ impl TreeNode {
     pub fn load(this: &TreeNodeRef) -> Result<(), AppError> {
         if !this.borrow().loaded {
             this.borrow_mut().subnodes.clear();
-            let nodes =
-                fs::read_dir(this.borrow().get_path())?.map(|res| res.map(|e| SysNode::from(&e)));
-            for on in nodes {
-                if let Ok(n) = on {
-                    TreeNode::append(this, TreeNode::from(n));
-                }
+            let nodes = fs::read_dir(this.borrow().get_path())?;
+            let nodes = nodes.map(|res| res.map(|e| SysNode::from(&e)));
+            let mut nodes: Vec<SysNode> = nodes.filter_map(Result::ok).collect();
+
+            nodes.sort_by(|a, b| match a.typ.priority().cmp(&b.typ.priority()) {
+                Ordering::Equal => a.name.to_string_lossy().cmp(&b.name.to_string_lossy()),
+                other => other,
+            });
+
+            for node in nodes {
+                TreeNode::append(this, TreeNode::from(node));
             }
+
             this.borrow_mut().loaded = true;
         }
         Ok(())
     }
 
     pub fn unload(&mut self) {
-        self.subnodes.clear();
-        self.loaded = false;
+        if self.loaded {
+            self.subnodes.clear();
+            self.loaded = false;
+            self.expanded = false;
+        }
     }
 
     // pub fn is_child_of(parent: &TreeNodeRef, child: &TreeNodeRef) -> bool {

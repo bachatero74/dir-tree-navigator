@@ -11,6 +11,18 @@ pub enum NodeType {
     SymLink,
     UpDir,
 }
+
+impl NodeType {
+    pub fn priority(&self) -> i32 {
+        match self {
+            NodeType::Dir => 0,
+            NodeType::SymLink => 1,
+            NodeType::File => 2,
+            NodeType::UpDir => 3,
+        }
+    }
+}
+
 pub struct SysNode {
     pub name: OsString,
     pub typ: NodeType,
