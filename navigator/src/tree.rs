@@ -97,8 +97,6 @@ impl Tree {
         let cd = self.curr_dir();
         let parent = cd.borrow().parent.upgrade();
         if let Some(parent) = parent {
-            // TreeNode::try_unload(&cd, &parent);
-            // self.goto(&parent)?;
             let ul = self.move_from_to(&cd, &parent)?;
             tv.modif_flags.render = ul;
             tv.modif_flags.print = true;
@@ -112,7 +110,6 @@ impl Tree {
 
     pub fn tv_expand(&mut self, b: bool, tv: &mut TreeView) -> Result<(), AppError> {
         let cd = self.curr_dir();
-        //let mut rcd = cd.borrow_mut();
         if b {
             // expand
             if !cd.borrow().expanded {
@@ -130,8 +127,6 @@ impl Tree {
                 // already collapsed
                 let parent = cd.borrow().parent.upgrade();
                 if let Some(parent) = parent {
-                    // TreeNode::try_unload(&cd, &parent);
-                    // self.goto(&parent);
                     let ul = self.move_from_to(&cd, &parent)?;
                     tv.modif_flags.render = ul;
                     tv.modif_flags.print = true;
@@ -147,10 +142,6 @@ impl Tree {
 
     pub fn lv_goto(&mut self, node: &TreeNodeRef, lv: &mut ListView) -> Result<(), AppError> {
         self.move_to_list_node(node)?;
-        // if let Some(tv) = self.tree_view.upgrade() {
-        //     tv.borrow_mut().modif_flags.render = false;
-        //     tv.borrow_mut().modif_flags.print = false;
-        // }
         lv.modif_flags.print = true;
         Ok(())
     }
@@ -258,7 +249,7 @@ impl Tree {
     }
 
     fn inner_find(this_node: &TreeNodeRef, it: &mut Components) -> Result<TreeNodeRef, AppError> {
-        TreeNode::load(this_node)?;
+        let _ = TreeNode::load(this_node); // Error ignored
         let oc = it.next();
         if let Some(c) = oc {
             match this_node
