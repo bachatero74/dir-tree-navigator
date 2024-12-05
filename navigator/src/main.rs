@@ -84,7 +84,6 @@ fn run(screen: &Screen) -> Result<PathBuf, AppError> {
 
 fn display_status(screen: &Screen, tree: &Tree) {
     let win = screen.status_win;
-    werase(win);
     wmove(win, 0, 0);
     wattr_on(win, A_REVERSE);
     for ch in tree
