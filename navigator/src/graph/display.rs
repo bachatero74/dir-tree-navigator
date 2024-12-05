@@ -9,7 +9,7 @@ use ncurses::*;
 #[derive(Default)]
 pub struct DisplInfo {
     pub lines_count: i32,
-    pub curs_line: i32, // TODO: optional usize?
+    pub curs_line: Option<i32>, // TODO: optional usize?
     pub curs_x1: i32,
     pub curs_x2: i32,
 }
@@ -72,16 +72,16 @@ impl Display {
         }
         self.content.borrow_mut().prepare(&mut info)?;
 
-        if info.curs_line >= 0 {
+        if let Some(curs_line) = info.curs_line {
             if !center {
-                if info.curs_line - self.offset_y > self.size.height - 1 - self.margin_y {
-                    self.offset_y = info.curs_line - self.size.height + 1 + self.margin_y;
+                if curs_line - self.offset_y > self.size.height - 1 - self.margin_y {
+                    self.offset_y = curs_line - self.size.height + 1 + self.margin_y;
                 }
-                if info.curs_line - self.offset_y < self.margin_y {
-                    self.offset_y = info.curs_line - self.margin_y;
+                if curs_line - self.offset_y < self.margin_y {
+                    self.offset_y = curs_line - self.margin_y;
                 }
             } else {
-                self.offset_y = info.curs_line - self.size.height / 2;
+                self.offset_y = curs_line - self.size.height / 2;
             }
         }
 
@@ -102,14 +102,13 @@ impl Display {
             }
             let cont = self.content.borrow();
             let view_line = cont.get_line(ln as usize)?;
-            self.print_line(
-                y as i32,
-                0,
-                view_line,
-                offset_x,
-                info.curs_line >= 0 && (y + self.offset_y == info.curs_line),
-                self.active,
-            );
+
+            let cursor = match info.curs_line {
+                Some(curs_line) => (y + self.offset_y) == curs_line,
+                None => false,
+            };
+
+            self.print_line(y as i32, 0, view_line, offset_x, cursor, self.active);
         }
 
         wrefresh(self.window);

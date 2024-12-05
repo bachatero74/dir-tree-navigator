@@ -51,17 +51,16 @@ impl TreeView {
     }
 
     // TODO: to ma zwracać Option(i32 lub usize) i tegoż typu ma być DisplInfo::curs_line
-    // a w ogóle to wywalić tą funkcję bo zbyt prosta
-    fn find_cursor(&self) -> i32 {
+    fn find_cursor(&self) -> Option<i32> {
         let cd = self.tree.borrow().curr_dir();
         if let Some(idx) = self
             .lines
             .iter()
             .position(|vl| Rc::ptr_eq(&vl.src_node, &cd))
         {
-            return idx as i32;
+            return Some(idx as i32);
         }
-        -1
+        None
     }
 }
 
@@ -81,11 +80,17 @@ impl DisplContent for TreeView {
         }
         info.lines_count = self.lines.len() as i32;
         info.curs_line = self.find_cursor();
-        match self.lines.get(info.curs_line as usize) {
-            Some(ln) => {
-                info.curs_x1 = ln.x1;
-                info.curs_x2 = ln.x2;
-            }
+        match info.curs_line {
+            Some(curs_line) => match self.lines.get(curs_line as usize) {
+                Some(ln) => {
+                    info.curs_x1 = ln.x1;
+                    info.curs_x2 = ln.x2;
+                }
+                None => {
+                    info.curs_x1 = 0;
+                    info.curs_x2 = 0;
+                }
+            },
             None => {
                 info.curs_x1 = 0;
                 info.curs_x2 = 0;
@@ -104,8 +109,7 @@ impl DisplContent for TreeView {
     fn process_key(&mut self, key: i32) -> Result<(), AppError> {
         match key {
             KEY_UP => {
-                let curs_y = self.find_cursor();
-                if curs_y >= 0 {
+                if let Some(curs_y) = self.find_cursor() {
                     if let Some(line) = self.lines.get((curs_y - 1) as usize) {
                         let tree = self.tree.clone();
                         let dest = line.src_node.clone();
@@ -114,8 +118,7 @@ impl DisplContent for TreeView {
                 }
             }
             KEY_DOWN => {
-                let curs_y = self.find_cursor();
-                if curs_y >= 0 {
+                if let Some(curs_y) = self.find_cursor() {
                     if let Some(line) = self.lines.get((curs_y + 1) as usize) {
                         let tree = self.tree.clone();
                         let dest = line.src_node.clone();
