@@ -225,11 +225,11 @@ impl Attributor {
     pub fn init_color_pairs() {
         let p = Attributor::get_color_pairs(&NodeType::File);
         init_pair(p.0, COLOR_WHITE, -1);
-        init_pair(p.1, COLOR_WHITE, COLOR_MAGENTA);
+        init_pair(p.1, COLOR_CYAN, -1);
 
         let p = Attributor::get_color_pairs(&NodeType::Dir);
         init_pair(p.0, COLOR_BLUE, -1);
-        init_pair(p.1, COLOR_BLUE, COLOR_MAGENTA);
+        init_pair(p.1, COLOR_CYAN, -1);
     }
 
     fn get_color_pairs(node_type: &NodeType) -> (i16, i16) {
