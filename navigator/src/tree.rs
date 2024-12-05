@@ -28,8 +28,6 @@ impl ModifFlags {
     }
 }
 
-// -----------------------------------------------------------------------------
-
 pub struct Tree {
     pub tree_view: Weak<RefCell<TreeView>>,
     pub list_view: Weak<RefCell<ListView>>,
@@ -41,7 +39,7 @@ impl Tree {
     pub fn new() -> Tree {
         let root = TreeNode::from(SysNode::new(&OsString::from("/"), NodeType::Dir));
         root.borrow_mut().expanded = true;
-        TreeNode::load(&root);
+        let _ = TreeNode::load(&root); // Error ignored
         Tree {
             tree_view: Weak::new(),
             list_view: Weak::new(),
@@ -82,11 +80,9 @@ impl Tree {
 
     pub fn tv_goto(&mut self, node: &TreeNodeRef, tv: &mut TreeView) -> Result<(), AppError> {
         let old_cd = self.curr_dir();
-        // TreeNode::try_unload(&old_cd, node);
-        // self.goto(node)?;
         let ul = self.move_from_to(&old_cd, node)?;
 
-        TreeNode::load(node); // <--------------------------------------- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        let _ = TreeNode::load(node); // Error ignored
 
         if let Some(lv) = self.list_view.upgrade() {
             lv.borrow_mut().modif_flags.render = true;
@@ -164,9 +160,8 @@ impl Tree {
             if file.borrow().sys_node.typ == NodeType::Dir {
                 let cd = self.curr_dir();
                 cd.borrow_mut().expanded = true;
-                let ul = self.move_from_to(&cd, &file)?;
-                //self.goto(&file)?;
-                TreeNode::load(&file);
+                let _ul = self.move_from_to(&cd, &file)?;
+                let _ = TreeNode::load(&file); // Error ignored
                 if let Some(tv) = self.tree_view.upgrade() {
                     tv.borrow_mut().modif_flags.render = true;
                     tv.borrow_mut().modif_flags.print = true;

@@ -25,10 +25,10 @@ fn run(screen: &Screen) -> Result<PathBuf, AppError> {
 
     let args: Vec<String> = env::args().collect();
     if let Some(path) = args.get(1) {
-        tree.borrow_mut().go_to_path(&PathBuf::from(path));
+        let _ = tree.borrow_mut().go_to_path(&PathBuf::from(path));
     } else {
         if let Ok(path) = env::current_dir() {
-            tree.borrow_mut().go_to_path(&path);
+            let _ = tree.borrow_mut().go_to_path(&path);
         }
     }
 

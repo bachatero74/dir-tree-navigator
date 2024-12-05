@@ -125,11 +125,11 @@ impl DisplContent for TreeView {
             }
             KEY_RIGHT => {
                 let tree = self.tree.clone();
-                tree.borrow_mut().tv_expand(true, self);
+                tree.borrow_mut().tv_expand(true, self)?;
             }
             KEY_LEFT => {
                 let tree = self.tree.clone();
-                tree.borrow_mut().tv_expand(false, self);
+                tree.borrow_mut().tv_expand(false, self)?;
             }
             KEY_BACKSPACE => {
                 let tree = self.tree.clone();

@@ -44,7 +44,6 @@ pub struct Display {
     content: Rc<RefCell<dyn DisplContent>>,
     window: WINDOW,
     size: Size,
-    //offset_x: i32,
     offset_y: i32,
     margin_y: i32,
     pub active: bool,
@@ -52,13 +51,16 @@ pub struct Display {
 
 impl Display {
     pub fn new(content: Rc<RefCell<dyn DisplContent>>, window: &WINDOW, size: &Size) -> Display {
+        let mut max_margin_y = (size.height - 1) / 2;
+        if max_margin_y < 0 {
+            max_margin_y = 0;
+        }
         Display {
             content,
             window: *window,
             size: *size,
-            //offset_x: 0,
             offset_y: 0,
-            margin_y: 3,
+            margin_y: 3.clamp(0, max_margin_y),
             active: false,
         }
     }
@@ -71,7 +73,7 @@ impl Display {
         self.content.borrow_mut().prepare(&mut info)?;
 
         if info.curs_line >= 0 {
-            if (!center) {
+            if !center {
                 if info.curs_line - self.offset_y > self.size.height - 1 - self.margin_y {
                     self.offset_y = info.curs_line - self.size.height + 1 + self.margin_y;
                 }
