@@ -24,30 +24,52 @@ impl TreeView {
         }
     }
 
-    fn list_node(&mut self, node: &TreeNodeRef, level: usize) {
+    fn list_node(
+        &mut self,
+        node: &TreeNodeRef,
+        prevs_stack: &mut Vec<bool>,
+        tbc: bool,
+        level: usize,
+    ) {
         let n = node.borrow();
         if n.sys_node.typ != NodeType::Dir {
             return;
         }
-        let name_as_str = n.sys_node.name.to_string_lossy().to_string();
+        let lead: String = prevs_stack
+            .iter()
+            .map(|b| if *b { "│" } else { " " })
+            .collect();
+        let link = if tbc { "├" } else { "└" };
         let exp_stat = if node.borrow().expanded { "-" } else { "+" };
-        self.lines.push(ViewLine::new(
-            &format!("{}{}{}", " ".repeat(level), exp_stat, &name_as_str),
-            (1 * level + 1) as i32,
-            (1 * level + 1 + name_as_str.chars().count()) as i32,
+        let name_as_str = n.sys_node.name.to_string_lossy().to_string();
+        let s = &format!("{}{}{}{}", lead, link, exp_stat, &name_as_str);
+        let vline = ViewLine::new(
+            s,
+            (prevs_stack.len() + 2) as i32,
+            (prevs_stack.len() + 2 + name_as_str.chars().count()) as i32,
             &node,
-        ));
+        );
+        self.lines.push(vline);
         if n.expanded {
-            for sn in &n.subnodes {
-                self.list_node(sn, level + 1);
+            let subnodes: Vec<_> = n
+                .subnodes
+                .iter()
+                .filter(|sn| sn.borrow().sys_node.typ == NodeType::Dir)
+                .collect();
+            prevs_stack.push(tbc);
+            let len = subnodes.len();
+            for (i, sn) in subnodes.iter().enumerate() {
+                self.list_node(sn, prevs_stack, i < len - 1, level + 1);
             }
+            prevs_stack.pop();
         }
     }
 
     fn list_tree(&mut self) {
         self.lines.clear();
         let root = &self.tree.borrow().root.clone(); // TODO: clone? - przyjrzeć się temu
-        self.list_node(root, 0);
+        let mut prevs_stack:Vec<bool> = Vec::new();
+        self.list_node(root, &mut prevs_stack, false, 0);
     }
 
     // TODO: to ma zwracać Option(i32 lub usize) i tegoż typu ma być DisplInfo::curs_line

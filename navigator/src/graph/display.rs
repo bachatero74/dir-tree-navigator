@@ -147,7 +147,13 @@ impl Display {
                     attributor.sel_on();
                 }
             }
-            waddch(self.window, ch as u32);
+            let ch32 = match ch {
+                '├'=>ACS_LTEE(),
+                '└'=>ACS_LLCORNER(),
+                '│'=>ACS_VLINE(),
+                _=> ch as u32,
+            };
+            waddch(self.window, ch32);
         }
     }
 }
