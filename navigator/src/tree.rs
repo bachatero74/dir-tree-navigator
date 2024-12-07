@@ -52,6 +52,63 @@ impl Tree {
         }
     }
 
+    /* #region Navigation */
+
+    fn goto(&mut self, node: &TreeNodeRef) -> Result<(), AppError> {
+        match node.borrow().parent.upgrade() {
+            Some(parent) => {
+                if let Some(idx) = parent
+                    .borrow()
+                    .subnodes
+                    .iter()
+                    .position(|n| Rc::ptr_eq(n, node))
+                {
+                    self.cursor.tpos = idx;
+                    self.cursor.lpos = 0;
+                } else {
+                    return Err(AppError::StrError("internal goto error".to_owned()));
+                }
+                self.cursor.node = Some(parent);
+            }
+            None => {
+                self.cursor.node = None;
+                self.cursor.tpos = 0;
+                self.cursor.lpos = 0;
+            }
+        }
+        Ok(())
+    }
+
+    fn move_from_to(&mut self, prev: &TreeNodeRef, next: &TreeNodeRef) -> Result<bool, AppError> {
+        let ul = TreeNode::try_unload(prev, next);
+        self.goto(next)?;
+        Ok(ul)
+    }
+
+    pub fn go_to_path(&mut self, path: &Path) -> Result<(), AppError> {
+        let mut node = self.find(path)?;
+        TreeNode::expand(&mut node);
+        self.goto(&node)
+    }
+
+    fn move_to_list_node(&mut self, node: &TreeNodeRef) -> Result<(), AppError> {
+        let cd = self.curr_dir();
+        if let Some(idx) = cd
+            .borrow()
+            .subnodes
+            .iter()
+            .position(|n| Rc::ptr_eq(n, node))
+        {
+            self.cursor.lpos = idx;
+        } else {
+        }
+        Ok(())
+    }
+
+    /* #endregion */
+
+    /* #region Current Pos */
+
     pub fn curr_dir(&self) -> TreeNodeRef {
         if let Some(n) = &self.cursor.node {
             let nb = n.borrow();
@@ -72,12 +129,13 @@ impl Tree {
         result
     }
 
-    fn move_from_to(&mut self, prev: &TreeNodeRef, next: &TreeNodeRef) -> Result<bool, AppError> {
-        let ul = TreeNode::try_unload(prev, next);
-        self.goto(next)?;
-        Ok(ul)
+    pub fn curr_path(&self) -> PathBuf {
+        self.curr_dir().borrow().get_path()
     }
 
+    /* #endregion */
+
+    /* #region TreeView Operations */
     pub fn tv_goto(&mut self, node: &TreeNodeRef, tv: &mut TreeView) -> Result<(), AppError> {
         let old_cd = self.curr_dir();
         let ul = self.move_from_to(&old_cd, node)?;
@@ -139,6 +197,9 @@ impl Tree {
         }
         Ok(())
     }
+    /* #endregion */
+
+    /* #region ListView Operations */
 
     pub fn lv_goto(&mut self, node: &TreeNodeRef, lv: &mut ListView) -> Result<(), AppError> {
         self.move_to_list_node(node)?;
@@ -178,57 +239,11 @@ impl Tree {
         }
         Ok(())
     }
+    /* #endregion */
 
-    pub fn curr_path(&self) -> PathBuf {
-        self.curr_dir().borrow().get_path()
-    }
+    /* #region Searching */
 
-    pub fn go_to_path(&mut self, path: &Path) -> Result<(), AppError> {
-        let mut node = self.find(path)?;
-        TreeNode::expand(&mut node);
-        self.goto(&node)
-    }
-
-    pub fn goto(&mut self, node: &TreeNodeRef) -> Result<(), AppError> {
-        match node.borrow().parent.upgrade() {
-            Some(parent) => {
-                if let Some(idx) = parent
-                    .borrow()
-                    .subnodes
-                    .iter()
-                    .position(|n| Rc::ptr_eq(n, node))
-                {
-                    self.cursor.tpos = idx;
-                    self.cursor.lpos = 0;
-                } else {
-                    return Err(AppError::StrError("internal goto error".to_owned()));
-                }
-                self.cursor.node = Some(parent);
-            }
-            None => {
-                self.cursor.node = None;
-                self.cursor.tpos = 0;
-                self.cursor.lpos = 0;
-            }
-        }
-        Ok(())
-    }
-
-    pub fn move_to_list_node(&mut self, node: &TreeNodeRef) -> Result<(), AppError> {
-        let cd = self.curr_dir();
-        if let Some(idx) = cd
-            .borrow()
-            .subnodes
-            .iter()
-            .position(|n| Rc::ptr_eq(n, node))
-        {
-            self.cursor.lpos = idx;
-        } else {
-        }
-        Ok(())
-    }
-
-    pub fn find(&self, path: &Path) -> Result<TreeNodeRef, AppError> {
+    fn find(&self, path: &Path) -> Result<TreeNodeRef, AppError> {
         let mut it = path.components();
         let oc: Option<Component> = it.next();
         match oc {
@@ -278,4 +293,5 @@ impl Tree {
 
         Ok(this_node.clone())
     }
+    /* #endregion */
 }
