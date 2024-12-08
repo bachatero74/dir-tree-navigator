@@ -61,10 +61,12 @@ fn run(screen: &Screen) -> Result<PathBuf, AppError> {
 
         let ch: i32 = getch();
 
-        if ch == KEY_F(10) || ch == 27 {
+        if ch == KEY_F(10) {
             break;
         }
-
+        if ch == 27 {
+            return Err(AppError::StrError("Abandoned.".to_owned()));
+        }
         if ch == '\t' as i32 {
             focused_displ.borrow_mut().active = false;
             focused_displ = if Rc::ptr_eq(&focused_displ, &left_displ) {
@@ -84,23 +86,7 @@ fn run(screen: &Screen) -> Result<PathBuf, AppError> {
     x
 }
 
-fn display_status(screen: &Screen, tree: &Tree) {
-    let win = screen.status_win;
-    wmove(win, 0, 0);
-    wattr_on(win, A_REVERSE);
-    for ch in tree
-        .curr_path()
-        .to_string_lossy()
-        .to_string()
-        .chars()
-        .chain(iter::repeat(' '))
-        .take(screen.sw_size.width as usize)
-    {
-        waddch(win, ch as u32);
-    }
-    wattr_off(win, A_REVERSE);
-    wrefresh(screen.status_win);
-}
+
 fn main() -> ExitCode {
     let screen = Screen::create();
     Attributor::init_color_pairs();
@@ -127,4 +113,22 @@ fn write_output(path: &Path) -> Result<(), AppError> {
     let mut file = File::create("/tmp/navigator.dir")?;
     file.write_all(path.to_string_lossy().as_bytes())?;
     Ok(())
+}
+
+fn display_status(screen: &Screen, tree: &Tree) {
+    let win = screen.status_win;
+    wmove(win, 0, 0);
+    wattr_on(win, A_REVERSE);
+    for ch in tree
+        .curr_path()
+        .to_string_lossy()
+        .to_string()
+        .chars()
+        .chain(iter::repeat(' '))
+        .take(screen.sw_size.width as usize)
+    {
+        waddch(win, ch as u32);
+    }
+    wattr_off(win, A_REVERSE);
+    wrefresh(screen.status_win);
 }
