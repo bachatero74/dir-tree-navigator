@@ -109,7 +109,7 @@ fn main() -> ExitCode {
 
     match result {
         Ok(path) => {
-            if let Err(err)=write_output(&path){
+            if let Err(err) = write_output(&path) {
                 eprintln!("{}", err);
                 return ExitCode::FAILURE;
             }
@@ -123,8 +123,8 @@ fn main() -> ExitCode {
     ExitCode::SUCCESS
 }
 
-fn write_output(path:&Path)->Result<(),AppError>{
-    let mut file=File::create("/tmp/navigator.dir")?;
+fn write_output(path: &Path) -> Result<(), AppError> {
+    let mut file = File::create("/tmp/navigator.dir")?;
     file.write_all(path.to_string_lossy().as_bytes())?;
     Ok(())
 }

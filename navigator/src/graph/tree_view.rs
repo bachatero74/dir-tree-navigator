@@ -24,13 +24,7 @@ impl TreeView {
         }
     }
 
-    fn list_node(
-        &mut self,
-        node: &TreeNodeRef,
-        prevs_stack: &mut Vec<bool>,
-        tbc: bool,
-        level: usize,
-    ) {
+    fn list_node(&mut self, node: &TreeNodeRef, prevs_stack: &mut Vec<bool>, tbc: Option<bool>) {
         let n = node.borrow();
         if n.sys_node.typ != NodeType::Dir {
             return;
@@ -39,14 +33,22 @@ impl TreeView {
             .iter()
             .map(|b| if *b { "│" } else { " " })
             .collect();
-        let link = if tbc { "├" } else { "└" };
+
+        let link = match tbc {
+            Some(tbc) => match tbc {
+                true => "├",
+                false => "└",
+            },
+            None => "",
+        };
+        let link_len = link.chars().count();
         let exp_stat = if node.borrow().expanded { "-" } else { "+" };
         let name_as_str = n.sys_node.name.to_string_lossy().to_string();
         let s = &format!("{}{}{}{}", lead, link, exp_stat, &name_as_str);
         let vline = ViewLine::new(
             s,
-            (prevs_stack.len() + 2) as i32,
-            (prevs_stack.len() + 2 + name_as_str.chars().count()) as i32,
+            (prevs_stack.len() + link_len + 1) as i32,
+            (prevs_stack.len() + link_len + 1 + name_as_str.chars().count()) as i32,
             &node,
         );
         self.lines.push(vline);
@@ -56,12 +58,16 @@ impl TreeView {
                 .iter()
                 .filter(|sn| sn.borrow().sys_node.typ == NodeType::Dir)
                 .collect();
-            prevs_stack.push(tbc);
+            if let Some(tbc) = tbc {
+                prevs_stack.push(tbc);
+            }
             let len = subnodes.len();
             for (i, sn) in subnodes.iter().enumerate() {
-                self.list_node(sn, prevs_stack, i < len - 1, level + 1);
+                self.list_node(sn, prevs_stack, Some(i < len - 1));
             }
-            prevs_stack.pop();
+            if let Some(_) = tbc {
+                prevs_stack.pop();
+            }
         }
     }
 
@@ -69,7 +75,7 @@ impl TreeView {
         self.lines.clear();
         let root = &self.tree.borrow().root.clone(); // TODO: clone? - przyjrzeć się temu
         let mut prevs_stack: Vec<bool> = Vec::new();
-        self.list_node(root, &mut prevs_stack, false, 0);
+        self.list_node(root, &mut prevs_stack, None);
     }
 
     // TODO: to ma zwracać Option(i32 lub usize) i tegoż typu ma być DisplInfo::curs_line
