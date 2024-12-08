@@ -68,7 +68,7 @@ impl TreeView {
     fn list_tree(&mut self) {
         self.lines.clear();
         let root = &self.tree.borrow().root.clone(); // TODO: clone? - przyjrzeć się temu
-        let mut prevs_stack:Vec<bool> = Vec::new();
+        let mut prevs_stack: Vec<bool> = Vec::new();
         self.list_node(root, &mut prevs_stack, false, 0);
     }
 

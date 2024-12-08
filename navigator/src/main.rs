@@ -9,7 +9,9 @@ mod graph {
     pub mod tree_view;
 }
 
-use std::path::PathBuf;
+use std::fs::File;
+use std::io::Write;
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::{cell::RefCell, rc::Rc};
 use std::{env, iter};
@@ -107,7 +109,10 @@ fn main() -> ExitCode {
 
     match result {
         Ok(path) => {
-            println!("{}", path.to_string_lossy().to_string());
+            if let Err(err)=write_output(&path){
+                eprintln!("{}", err);
+                return ExitCode::FAILURE;
+            }
         }
         Err(err) => {
             eprintln!("{}", err);
@@ -116,4 +121,10 @@ fn main() -> ExitCode {
     }
 
     ExitCode::SUCCESS
+}
+
+fn write_output(path:&Path)->Result<(),AppError>{
+    let mut file=File::create("/tmp/navigator.dir")?;
+    file.write_all(path.to_string_lossy().as_bytes())?;
+    Ok(())
 }

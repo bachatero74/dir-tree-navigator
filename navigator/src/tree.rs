@@ -179,9 +179,9 @@ impl Tree {
             // collapse
             if cd.borrow().expanded {
                 cd.borrow_mut().expanded = false;
-                for sn in &cd.borrow().subnodes{
+                for sn in &cd.borrow().subnodes {
                     sn.borrow_mut().unload();
-                };
+                }
                 tv.modif_flags.render = true;
                 tv.modif_flags.print = true;
             } else {
