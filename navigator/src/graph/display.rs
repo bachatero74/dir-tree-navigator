@@ -15,6 +15,7 @@ pub struct DisplInfo {
     pub curs_x2: i32,
 }
 
+/* #region ViewLine */
 pub struct ViewLine {
     pub content: String,
     pub x1: i32,
@@ -34,6 +35,7 @@ impl ViewLine {
         }
     }
 }
+/* #endregion */
 
 pub trait DisplContent {
     fn prepare(&mut self, info: &mut DisplInfo) -> Result<(), AppError>;
@@ -43,6 +45,7 @@ pub trait DisplContent {
     fn reset_modified(&mut self);
 }
 
+/* #region Display */
 pub struct Display {
     content: Rc<RefCell<dyn DisplContent>>,
     window: WINDOW,
@@ -172,12 +175,13 @@ impl Display {
         }
     }
 }
+/* #endregion */
 
 fn fit_str(x1: i32, x2: i32, width: i32) -> i32 {
     (x2 - width).clamp(0, x1)
 }
 
-// -----------------------------------------------------------------------
+/* #region Attributor */
 
 pub struct Attributor2 {
     window: WINDOW,
@@ -201,6 +205,12 @@ impl Attributor2 {
     fn node_on(&mut self) {}
 
     fn node_off(&mut self) {}
+}
+
+impl Drop for Attributor2 {
+    fn drop(&mut self) {
+        //...
+    }
 }
 
 pub struct Attributor {
@@ -292,3 +302,5 @@ impl Drop for Attributor {
         self.reset_curr_reverse();
     }
 }
+
+/* #endregion */
