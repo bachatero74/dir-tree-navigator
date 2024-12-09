@@ -86,7 +86,6 @@ fn run(screen: &Screen) -> Result<PathBuf, AppError> {
     x
 }
 
-
 fn main() -> ExitCode {
     let screen = Screen::create();
     Attributor::init_color_pairs();

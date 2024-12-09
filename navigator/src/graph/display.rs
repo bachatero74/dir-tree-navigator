@@ -1,3 +1,4 @@
+use std::f32::consts::E;
 use std::{cell::RefCell, rc::Rc};
 
 use crate::common::*;
@@ -18,6 +19,8 @@ pub struct ViewLine {
     pub content: String,
     pub x1: i32,
     pub x2: i32,
+    // pub main_color: i16,
+    // pub node_color: i16,
     pub src_node: TreeNodeRef,
 }
 
@@ -131,6 +134,18 @@ impl Display {
     ) {
         let typ = &vline.src_node.borrow().sys_node.typ;
         let mut attributor = Attributor::new(self.window, container_active, typ);
+        let ncolor = match vline.src_node.borrow().sys_node.typ {
+            NodeType::File => {
+                let exec = (vline.src_node.borrow().sys_node.mode & 0o111) != 0;
+                match exec {
+                    true => Some(AppColorTypes::Exec as i16),
+                    false => None,
+                }
+            }
+            NodeType::Dir => Some(AppColorTypes::Dir as i16),
+            NodeType::SymLink => None,
+        };
+        let mut attributor2 = Attributor2::new(self.window, cursor, ncolor);
         wmove(self.window, y, x);
 
         for (i, ch) in vline
@@ -163,6 +178,30 @@ fn fit_str(x1: i32, x2: i32, width: i32) -> i32 {
 }
 
 // -----------------------------------------------------------------------
+
+pub struct Attributor2 {
+    window: WINDOW,
+    at_cursor: bool,
+    node_color: Option<i16>,
+    current_color: Option<i16>,
+    current_reverse: bool,
+}
+
+impl Attributor2 {
+    fn new(window: WINDOW, at_cursor: bool, node_color: Option<i16>) -> Attributor2 {
+        Attributor2 {
+            window,
+            at_cursor,
+            node_color,
+            current_color: None,
+            current_reverse: false,
+        }
+    }
+
+    fn node_on(&mut self) {}
+
+    fn node_off(&mut self) {}
+}
 
 pub struct Attributor {
     window: WINDOW,
