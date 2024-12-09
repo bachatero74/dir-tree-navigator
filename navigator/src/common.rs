@@ -1,4 +1,5 @@
 use thiserror;
+use ncurses::*;
 
 #[derive(thiserror::Error, Debug)]
 pub enum AppError {
@@ -23,3 +24,14 @@ impl Size {
         Size { width, height }
     }
 }
+
+enum AppColorTypes {
+    Dir=10,
+    Exec=11,
+}
+
+pub fn init_app_colors(){
+    init_pair(AppColorTypes::Dir as i16, COLOR_BLUE, -1);
+    init_pair(AppColorTypes::Exec as i16, COLOR_CYAN, -1);
+}
+
