@@ -136,7 +136,7 @@ impl Display {
         container_active: bool,
     ) {
         let typ = &vline.src_node.borrow().sys_node.typ;
-        let mut attributor = Attributor::new(self.window, container_active, typ);
+        //let mut attributor = Attributor::new(self.window, container_active, typ);
         let ncolor = match vline.src_node.borrow().sys_node.typ {
             NodeType::File => {
                 let exec = (vline.src_node.borrow().sys_node.mode & 0o111) != 0;
@@ -148,7 +148,7 @@ impl Display {
             NodeType::Dir => Some(AppColorTypes::Dir as i16),
             NodeType::SymLink => None,
         };
-        let mut attributor2 = Attributor2::new(self.window, cursor, ncolor);
+        let mut attributor2 = Attributor2::new(self.window, container_active, cursor, ncolor);
         wmove(self.window, y, x);
 
         for (i, ch) in vline
@@ -158,12 +158,17 @@ impl Display {
             .skip(offs as usize)
             .take(self.size.width as usize)
         {
-            if cursor {
-                if i >= vline.x2 as usize {
-                    attributor.sel_off();
-                } else if i >= vline.x1 as usize {
-                    attributor.sel_on();
-                }
+            // if cursor {
+            //     if i >= vline.x2 as usize {
+            //         attributor.sel_off();
+            //     } else if i >= vline.x1 as usize {
+            //         attributor.sel_on();
+            //     }
+            // }
+            if i >= vline.x2 as usize {
+                attributor2.node_off();
+            } else if i >= vline.x1 as usize {
+                attributor2.node_on();
             }
             let ch32 = match ch {
                 '├' => ACS_LTEE(),
@@ -185,6 +190,7 @@ fn fit_str(x1: i32, x2: i32, width: i32) -> i32 {
 
 pub struct Attributor2 {
     window: WINDOW,
+    container_active: bool,
     at_cursor: bool,
     node_color: Option<i16>,
     current_color: Option<i16>,
@@ -192,9 +198,10 @@ pub struct Attributor2 {
 }
 
 impl Attributor2 {
-    fn new(window: WINDOW, at_cursor: bool, node_color: Option<i16>) -> Attributor2 {
+    fn new(window: WINDOW, container_active: bool, at_cursor: bool, node_color: Option<i16>) -> Attributor2 {
         Attributor2 {
             window,
+            container_active,
             at_cursor,
             node_color,
             current_color: None,
@@ -202,14 +209,37 @@ impl Attributor2 {
         }
     }
 
-    fn node_on(&mut self) {}
+    fn node_on(&mut self) {
+        if self.container_active && self.at_cursor {
+            self.set_curr_reverse();
+        }
+    }
 
-    fn node_off(&mut self) {}
+    fn node_off(&mut self) {
+        if self.container_active && self.at_cursor {
+            self.reset_curr_reverse();
+        }
+    }
+
+    fn set_curr_reverse(&mut self) {
+        if !self.current_reverse {
+            wattr_on(self.window, A_REVERSE);
+            self.current_reverse = true;
+        }
+    }
+
+    fn reset_curr_reverse(&mut self) {
+        if self.current_reverse {
+            wattr_off(self.window, A_REVERSE);
+            self.current_reverse = false;
+        }
+    }
 }
 
 impl Drop for Attributor2 {
     fn drop(&mut self) {
-        //...
+        //self.reset_curr_color();
+        self.reset_curr_reverse();
     }
 }
 
