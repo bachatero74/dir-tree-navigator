@@ -1,8 +1,6 @@
-use std::f32::consts::E;
 use std::{cell::RefCell, rc::Rc};
 
 use crate::common::*;
-use crate::filesystem::NodeType;
 use crate::tree_node::*;
 
 use ncurses::*;
@@ -20,17 +18,23 @@ pub struct ViewLine {
     pub content: String,
     pub x1: i32,
     pub x2: i32,
-    // pub main_color: i16,
-    // pub node_color: i16,
+    pub node_color: Option<i16>,
     pub src_node: TreeNodeRef,
 }
 
 impl ViewLine {
-    pub fn new(content: &str, x1: i32, x2: i32, src_node: &TreeNodeRef) -> ViewLine {
+    pub fn new(
+        content: &str,
+        x1: i32,
+        x2: i32,
+        node_color: Option<i16>,
+        src_node: &TreeNodeRef,
+    ) -> ViewLine {
         ViewLine {
             content: content.to_owned(),
             x1,
             x2,
+            node_color,
             src_node: src_node.clone(),
         }
     }
@@ -135,18 +139,8 @@ impl Display {
         cursor: bool,
         container_active: bool,
     ) {
-        let ncolor = match vline.src_node.borrow().sys_node.typ {
-            NodeType::File => {
-                let exec = (vline.src_node.borrow().sys_node.mode & 0o111) != 0;
-                match exec {
-                    true => Some(AppColorTypes::Exec as i16),
-                    false => None,
-                }
-            }
-            NodeType::Dir => Some(AppColorTypes::Dir as i16),
-            NodeType::SymLink => None,
-        };
-        let mut attributor2 = Attributor2::new(self.window, container_active, cursor, ncolor);
+        let mut attributor =
+            Attributor::new(self.window, container_active, cursor, vline.node_color);
         wmove(self.window, y, x);
 
         for (i, ch) in vline
@@ -157,9 +151,9 @@ impl Display {
             .take(self.size.width as usize)
         {
             if i >= vline.x2 as usize {
-                attributor2.node_off();
+                attributor.node_off();
             } else if i >= vline.x1 as usize {
-                attributor2.node_on();
+                attributor.node_on();
             }
             let ch32 = match ch {
                 '├' => ACS_LTEE(),
@@ -179,7 +173,7 @@ fn fit_str(x1: i32, x2: i32, width: i32) -> i32 {
 
 /* #region Attributor */
 
-pub struct Attributor2 {
+pub struct Attributor {
     window: WINDOW,
     container_active: bool,
     at_cursor: bool,
@@ -188,14 +182,14 @@ pub struct Attributor2 {
     current_reverse: bool,
 }
 
-impl Attributor2 {
+impl Attributor {
     fn new(
         window: WINDOW,
         container_active: bool,
         at_cursor: bool,
         node_color: Option<i16>,
-    ) -> Attributor2 {
-        Attributor2 {
+    ) -> Attributor {
+        Attributor {
             window,
             container_active,
             at_cursor,
@@ -248,96 +242,6 @@ impl Attributor2 {
             wattroff(self.window, COLOR_PAIR(color));
         }
         self.current_color = None;
-    }
-}
-
-impl Drop for Attributor2 {
-    fn drop(&mut self) {
-        self.reset_curr_color();
-        self.reset_curr_reverse();
-    }
-}
-
-pub struct Attributor {
-    window: WINDOW,
-    container_active: bool,
-    color_pairs: (i16, i16),
-    curr_color: Option<i16>,
-    curr_reverse: bool,
-}
-
-impl Attributor {
-    fn new(window: WINDOW, container_active: bool, node_type: &NodeType) -> Attributor {
-        let cp = Attributor::get_color_pairs(node_type);
-        let mut ret = Attributor {
-            window,
-            container_active,
-            color_pairs: cp,
-            curr_color: None,
-            curr_reverse: false,
-        };
-        ret.set_curr_color(cp.0);
-        ret
-    }
-
-    fn sel_on(&mut self) {
-        if self.container_active {
-            self.set_curr_reverse();
-        } else {
-            self.set_curr_color(self.color_pairs.1);
-        }
-    }
-
-    fn sel_off(&mut self) {
-        if self.container_active {
-            self.reset_curr_reverse();
-        } else {
-            self.set_curr_color(self.color_pairs.0);
-        }
-    }
-
-    fn set_curr_color(&mut self, color: i16) {
-        self.reset_curr_color();
-        wattron(self.window, COLOR_PAIR(color));
-        self.curr_color = Some(color);
-    }
-
-    fn set_curr_reverse(&mut self) {
-        if !self.curr_reverse {
-            wattr_on(self.window, A_REVERSE);
-            self.curr_reverse = true;
-        }
-    }
-
-    fn reset_curr_reverse(&mut self) {
-        if self.curr_reverse {
-            wattr_off(self.window, A_REVERSE);
-            self.curr_reverse = false;
-        }
-    }
-
-    fn reset_curr_color(&mut self) {
-        if let Some(col) = self.curr_color {
-            wattroff(self.window, COLOR_PAIR(col));
-            self.curr_color = None;
-        }
-    }
-
-    pub fn init_color_pairs() {
-        let p = Attributor::get_color_pairs(&NodeType::File);
-        init_pair(p.0, COLOR_WHITE, -1);
-        init_pair(p.1, COLOR_CYAN, -1);
-
-        let p = Attributor::get_color_pairs(&NodeType::Dir);
-        init_pair(p.0, COLOR_BLUE, -1);
-        init_pair(p.1, COLOR_CYAN, -1);
-    }
-
-    fn get_color_pairs(node_type: &NodeType) -> (i16, i16) {
-        match node_type {
-            NodeType::Dir => (3, 4),
-            _ => (1, 2),
-        }
     }
 }
 

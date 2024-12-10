@@ -49,6 +49,7 @@ impl TreeView {
             s,
             (prevs_stack.len() + link_len + 1) as i32,
             (prevs_stack.len() + link_len + 1 + name_as_str.chars().count()) as i32,
+            None,
             &node,
         );
         self.lines.push(vline);

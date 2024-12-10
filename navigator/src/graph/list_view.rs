@@ -39,10 +39,23 @@ impl ListView {
                 n.sys_node.name.to_string_lossy().to_string()
             );
 
+            let ncolor = match n.sys_node.typ {
+                NodeType::File => {
+                    let exec = (n.sys_node.mode & 0o111) != 0;
+                    match exec {
+                        true => Some(AppColorTypes::Exec as i16),
+                        false => None,
+                    }
+                }
+                NodeType::Dir => Some(AppColorTypes::Dir as i16),
+                NodeType::SymLink => None,
+            };
+
             self.lines.push(ViewLine::new(
                 &line_str,
                 53,
                 line_str.chars().count() as i32,
+                ncolor,
                 &node,
             ));
         }
