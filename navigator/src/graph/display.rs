@@ -135,8 +135,6 @@ impl Display {
         cursor: bool,
         container_active: bool,
     ) {
-        let typ = &vline.src_node.borrow().sys_node.typ;
-        //let mut attributor = Attributor::new(self.window, container_active, typ);
         let ncolor = match vline.src_node.borrow().sys_node.typ {
             NodeType::File => {
                 let exec = (vline.src_node.borrow().sys_node.mode & 0o111) != 0;
@@ -158,13 +156,6 @@ impl Display {
             .skip(offs as usize)
             .take(self.size.width as usize)
         {
-            // if cursor {
-            //     if i >= vline.x2 as usize {
-            //         attributor.sel_off();
-            //     } else if i >= vline.x1 as usize {
-            //         attributor.sel_on();
-            //     }
-            // }
             if i >= vline.x2 as usize {
                 attributor2.node_off();
             } else if i >= vline.x1 as usize {
@@ -198,7 +189,12 @@ pub struct Attributor2 {
 }
 
 impl Attributor2 {
-    fn new(window: WINDOW, container_active: bool, at_cursor: bool, node_color: Option<i16>) -> Attributor2 {
+    fn new(
+        window: WINDOW,
+        container_active: bool,
+        at_cursor: bool,
+        node_color: Option<i16>,
+    ) -> Attributor2 {
         Attributor2 {
             window,
             container_active,
@@ -213,12 +209,14 @@ impl Attributor2 {
         if self.container_active && self.at_cursor {
             self.set_curr_reverse();
         }
+        self.set_curr_color(self.node_color);
     }
 
     fn node_off(&mut self) {
         if self.container_active && self.at_cursor {
             self.reset_curr_reverse();
         }
+        self.reset_curr_color();
     }
 
     fn set_curr_reverse(&mut self) {
@@ -234,11 +232,28 @@ impl Attributor2 {
             self.current_reverse = false;
         }
     }
+
+    fn set_curr_color(&mut self, color: Option<i16>) {
+        if color != self.current_color {
+            self.reset_curr_color();
+            if let Some(color) = color {
+                wattron(self.window, COLOR_PAIR(color));
+            }
+            self.current_color = color;
+        }
+    }
+
+    fn reset_curr_color(&mut self) {
+        if let Some(color) = self.current_color {
+            wattroff(self.window, COLOR_PAIR(color));
+        }
+        self.current_color = None;
+    }
 }
 
 impl Drop for Attributor2 {
     fn drop(&mut self) {
-        //self.reset_curr_color();
+        self.reset_curr_color();
         self.reset_curr_reverse();
     }
 }
