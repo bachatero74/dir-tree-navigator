@@ -1,7 +1,7 @@
 # dir-tree-navigator
 Terminal tool for navigating the Linux file system
 
-Add this function to your .bashrc:
+To allow the navigator change current dir, add this function to your .bashrc:
 
 ```bash
 nav() {
@@ -15,3 +15,6 @@ nav() {
 	fi
 }
 ```
+
+You can run the navigator by typing nav. When you finish the app with F10 key, current directory will change to selected one.
+Esc quits app without changing current dir.
