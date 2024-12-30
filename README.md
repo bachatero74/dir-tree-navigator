@@ -3,6 +3,7 @@ Terminal tool for navigating the Linux file system
 
 Add this function to your .bashrc:
 
+```bash
 nav() {
 	your_path/navigator $1
 	
@@ -13,3 +14,4 @@ nav() {
 		rm /tmp/navigator.dir
 	fi
 }
+```
